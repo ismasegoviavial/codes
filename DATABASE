@@ -1,0 +1,253 @@
+{
+  "oracle": {
+    "oms": {
+      "user": "",
+      "pass": "",
+      "host": "faisan-cluster-stby",
+      "port": 1531,
+      "sid": "omsclpr1"
+    },
+    "sab": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "sab2": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "sie": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "b2b": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "srx": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "srx_prod": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "trl": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "wmos3": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "wmos": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+     },
+    "wmos_goh": {
+      "user": "",
+      "pass": "",
+      "host": "l",
+      "port": ,
+      "sid": ""
+    },
+    "wmos2": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+     
+    },
+    "sbox1": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    },
+    "sbox": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": ,
+      "sid": ""
+    }
+  },
+  "mssql": {
+    "mav": {
+        "user": "",
+        "pass": "",
+        "host": "",
+        "driver": "",
+        "database": ""
+      },
+    "rmy": {
+        "user": "",
+        "pass": "",
+        "host": "",
+        "driver": "",
+        "database": ""
+      },
+    "sci": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "etl": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database":""
+    },
+    "log": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "{ODBC Driver 17 for SQL Server}",
+      "database": "SISAT"
+    },
+    "efv": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "aeo": {
+      "user": "",
+      "pass": "",
+      "host": "t",
+      "driver": "",
+      "database": ""
+    },
+    "jim": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "jim138": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "diego": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "mac": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "mac138": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "aac": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "aac138": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "ean": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "mlj": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "xvegas": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "test": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "bd6": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "bd72": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+    "bd127": {
+      "user": "",
+      "pass": "",
+      "host": "",
+      "driver": "",
+      "database": ""
+    },
+  }
+}
+
