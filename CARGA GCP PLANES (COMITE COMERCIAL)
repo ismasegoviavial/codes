@@ -1,0 +1,359 @@
+import pandas as pd
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from os import listdir
+import shutil
+import numpy as np
+import sys
+import os
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.insert(0, path)
+import ToolsBI as BI
+from datetime import datetime,  timedelta,date
+from dateutil.relativedelta import relativedelta
+from os import listdir
+import win32api
+
+path_gcp = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/keys_equipos/bi-logistic-process-planificacion.json"
+
+path_in = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Planes/Archivos_in"
+path_in_dvda = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Guardado DVD/Ajustado/Archivos_in"
+path_in_dvdm = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Guardado DVD/Mensual/Archivos_in"
+
+path_out = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Planes/Archivos_out"
+path_out_dvda = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Guardado DVD/Ajustado/Archivos_out"
+path_out_dvdm = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Guardado DVD/Mensual/Archivos_out"
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+
+fecha_carga = datetime.now()
+
+
+#%% Plan Mensual / F5
+
+# for file in listdir(path_in):
+    
+#     print(file)
+
+#     try:
+#         temp = pd.read_excel(path_in+'/'+file,sheet_name = 'Plan Mensual')
+#         Plan = set(temp['SEMANA ACTUAL'].unique())
+    
+#         temp = pd.melt(temp, id_vars=['KEY','LINEA','SubLínea','DESC_SL','SEMANA ACTUAL','VALIDADOR'])
+#         temp.columns = temp.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+#         temp = temp[~temp['LINEA'].isin(['J00','J99','J95'])] 
+#         temp = temp[temp['SUBLINEA'] != 'J1804'] 
+#         temp['MES'] = temp['SEMANA_ACTUAL'].astype(str).str[4:6]
+#         temp = temp.rename(columns={'VARIABLE':'PROCESO','VALUE':'UNIDADES'})
+#         temp[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','VALIDADOR','PROCESO','MES']] = temp[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','VALIDADOR','PROCESO','MES']].astype('str')
+#         temp['FECHA_CARGA'] = fecha_carga
+#         temp = temp.assign(TIPO = 'Plan Mensual')
+#         temp['ORIGEN'] = 'Manual'
+#         temp = temp[['KEY','LINEA','SUBLINEA','DESC_SL','SEMANA_ACTUAL','MES','PROCESO','UNIDADES','FECHA_CARGA','TIPO','ORIGEN']]
+#         BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'plan_mensual' , Data = temp, Append = 1, path = path_gcp)
+        
+#     except:
+#         print(f'Archivo Mensual: {file} no procesado.')
+
+#%%
+    
+# =============================================================================
+# Guardado DVD / Mensual
+# =============================================================================
+
+# for file__ in listdir(path_in_dvdm):
+
+#     print(file__)
+
+#     try:
+#         gdvd_m = pd.read_excel(path_in_dvdm+'/'+file__)
+#         Plan_ = set(gdvd_m['Semana'].unique())
+                       
+#         gdvd_m.columns = gdvd_m.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+#         gdvd_m['MES'] = gdvd_m['SEMANA'].astype(str).str[4:6]
+#         gdvd_m = gdvd_m.rename(columns={'SEMANA':'SEMANA_ACTUAL'})
+#         gdvd_m['KEY'] = gdvd_m['SUBLINEA'] + gdvd_m['SEMANA_ACTUAL'].astype('str')
+#         gdvd_m = gdvd_m[~gdvd_m['LINEA'].isin(['J00','J99','J95'])] 
+#         gdvd_m = gdvd_m[gdvd_m['SUBLINEA'] != 'J1804'] 
+#         gdvd_m['DESC_SL'] = ''
+#         gdvd_m[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','PROCESO','MES']] = gdvd_m[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','PROCESO','MES']].astype('str')
+#         gdvd_m['FECHA_CARGA'] = fecha_carga
+#         gdvd_m = gdvd_m.assign(TIPO = 'Plan Mensual')
+#         gdvd_m['ORIGEN'] = 'Manual'
+#         gdvd_m = gdvd_m[['KEY','LINEA','SUBLINEA','DESC_SL','SEMANA_ACTUAL','MES','PROCESO','UNIDADES','FECHA_CARGA','TIPO','ORIGEN']]
+#         BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'plan_mensual' , Data = gdvd_m, Append = 1, path = path_gcp)
+                
+    
+#     except:
+#         print(f'Archivo {file__} no procesado.')
+        
+#%% Plan Ajustado / F5  
+
+# for file in listdir(path_in):
+
+#     print(file)    
+    
+#     try:
+
+#         df = pd.read_excel(path_in+'/'+file,sheet_name = 'Nuevo Ajustado')
+#         df = pd.melt(df, id_vars=['KEY','LINEA','SubLínea','DESC_SL','SEMANA ACTUAL','Mes'])
+#         df.columns = df.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+#         df = df.rename(columns={'VARIABLE':'PROCESO','VALUE':'UNIDADES'})
+#         df = df[~df['LINEA'].isin(['J00','J99','J95'])] 
+#         df = df[df['SUBLINEA'] != 'J1804']
+#         df[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','MES','PROCESO']] = df[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','MES','PROCESO']].astype('str')
+#         df['FECHA_CARGA'] = fecha_carga
+#         df = df.assign(TIPO = 'Plan Ajustado')
+#         df['ORIGEN'] = 'Manual'
+#         df = df[['KEY','LINEA','SUBLINEA','DESC_SL','SEMANA_ACTUAL','MES','PROCESO','UNIDADES','FECHA_CARGA','TIPO','ORIGEN']]
+#         BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'plan_ajustado' , Data = df, Append = 1, path = path_gcp)
+
+#     except:
+#         print(f'Archivo {file} no procesado.')
+
+#%%
+# =============================================================================
+# Guardado DVD / Ajustado
+# =============================================================================
+    
+for file_ in listdir(path_in_dvda):
+
+    try:
+        
+        gdvd = pd.read_excel(path_in_dvda+'/'+file_)
+        gdvd.columns = gdvd.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+        gdvd['KEY'] = gdvd['ID_SUBLINEA'] + gdvd['SEMANA'].astype('str')
+        gdvd = gdvd.rename(columns = {'ID_SUBLINEA':'SUBLINEA','ID_LINEA':'LINEA','SEMANA':'SEMANA_ACTUAL'})
+        gdvd['PROCESO'] = 'GUARDADO DVD LOF1'
+        gdvd = gdvd[~gdvd['LINEA'].isin(['J00','J99','J95'])] 
+        gdvd = gdvd[gdvd['SUBLINEA'] != 'J1804']
+        gdvd[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','PROCESO','MES']] = gdvd[['KEY', 'LINEA', 'SUBLINEA', 'DESC_SL','PROCESO','MES']].astype('str')
+        gdvd['FECHA_CARGA'] = fecha_carga
+        gdvd = gdvd.assign(TIPO = 'Plan Ajustado')
+        gdvd['ORIGEN'] = 'Manual'
+        gdvd = gdvd[['KEY','LINEA','SUBLINEA','DESC_SL','SEMANA_ACTUAL','MES','PROCESO','UNIDADES','FECHA_CARGA','TIPO','ORIGEN']]
+        gdvd['UNIDADES'] = gdvd['UNIDADES'].astype(float)
+        BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'plan_ajustado' , Data = gdvd, Append = 1, path = path_gcp)
+
+    except:
+        print(f'Archivo {file_} no procesado.')
+    
+
+#%% Uso Interno
+
+# shutil.move(path_in + '/'+ file, path_out + '/' + file)
+# shutil.move(path_in_dvda + '/'+ file_, path_out_dvda + '/' + file_)
+# shutil.move(path_in_dvdm + '/'+ file__, path_out_dvdm + '/' + file__)
+ Un archivo adjunto
+  •  Analizados por Gmail
+
+Ismael segovia <ismasegoviavial@gmail.com>
+15 jun 2023, 15:13
+para mí
+
+
+FORMATO BUNKER
+import pandas as pd
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from os import listdir
+import shutil
+import numpy as np
+import sys
+import os
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.insert(0, path)
+import ToolsBI as BI
+from datetime import datetime,  timedelta,date
+from dateutil.relativedelta import relativedelta
+from os import listdir
+import win32api
+
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+TABLE_NAME = 'formato_bunker_cc'
+
+TABLE_ID = PROJECT_NAME + '.' + DATASET_NAME + '.' + TABLE_NAME
+path_gcp = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/keys_equipos/bi-logistic-process-planificacion.json"
+
+#%% PLANIFICACION OPERATIVA
+
+# =============================================================================
+# =============================================================================
+# # INICIO DE ESPACIO PARA MODIFICAR
+# =============================================================================
+# =============================================================================
+
+# Si hay un feriado se debe cambiar el 5.5 por 4.5 en todos (punto, no coma). El día que se trabaje medio día debe ser 11. 
+# El día feriado debe llevar un 0. Por ejemplo, si Monday es feriado, entonces 'Monday':0.
+
+denominadores_LOF1 = \
+{'Monday':5.0, 
+'Tuesday':5.0,
+'Wednesday':5.0, 
+'Thursday':5.0,
+'Friday':5.0,
+'Saturday':0,
+'Sunday':0}
+
+denominadores_LOF2 = \
+{'Monday':5.0, 
+'Tuesday':5.0,
+'Wednesday':5.0, 
+'Thursday':5.0,
+'Friday':5.0,
+'Saturday':0,
+'Sunday':0}
+
+# =============================================================================
+# =============================================================================
+# # FIN DE ESPACIO PARA MODIFICAR
+# =============================================================================
+# =============================================================================
+
+#%% SCRIPT DE PROCESAMIENTO
+
+fecha_carga = datetime.now()
+
+denominadores_LOF1 = pd.DataFrame(list(denominadores_LOF1.items()),columns=['dia', 'denominador'])
+denominadores_LOF1['CD'] = 1
+
+denominadores_LOF2 = pd.DataFrame(list(denominadores_LOF2.items()),columns=['dia', 'denominador'])
+denominadores_LOF2['CD'] = 2
+
+denominadores = denominadores_LOF1.append(denominadores_LOF2)
+
+calendario= BI.QxGCP( query = """SELECT  * FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.calendario` """, path =path_gcp )
+fecha_maxima = BI.QxGCP( query = """ select max( FECHA_CARGA) as fecha_maxima FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.plan_ajustado` """, path =path_gcp )
+fecha_maxima_ = BI.QxGCP( query = """ select max( FECHA_CARGA) as fecha_maxima FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.plan_mensual` """, path =path_gcp )
+
+fm = str(pd.to_datetime(fecha_maxima['fecha_maxima'].unique()[0]))
+fm_ = str(pd.to_datetime(fecha_maxima_['fecha_maxima'].unique()[0]))
+
+#%%
+# =============================================================================
+# Plan Ajustado con máxima fecha de carga
+# =============================================================================
+
+data  = BI.QxGCP( query = 
+                 """SELECT  
+                     SEMANA_ACTUAL, 
+                     MES,
+                     PROCESO, 
+                     UNIDADES, 
+                     FECHA_CARGA,  
+                    FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.plan_ajustado` 
+                    WHERE FECHA_CARGA = '""" + fm + """'
+                     """  , path = path_gcp )
+
+ini = calendario[calendario['SEMANA_PROGRAMACION'] == data['SEMANA_ACTUAL'].min()]['FECHA_INICIO'].unique()[0]
+fin = calendario[calendario['SEMANA_PROGRAMACION'] == data['SEMANA_ACTUAL'].max()]['FECHA_TERMINO'].unique()[0]
+
+
+fechas_semana = pd.DataFrame(pd.date_range(ini, fin, freq='D'), columns = ['fecha'])
+fechas_semana['dia'] = fechas_semana['fecha'].dt.day_name()
+
+fechas_semana['key'] = 1
+
+total_proceso = data.groupby('PROCESO')['UNIDADES'].sum().reset_index()
+
+# total_proceso = data.groupby(by = ['PROCESO','SEMANA_ACTUAL'])['UNIDADES'].sum().reset_index()
+
+total_proceso = total_proceso.rename(columns = {'UNIDADES':'UNIDADES_TOTALES'})
+total_proceso['key'] = 1
+
+
+bunker = pd.merge(total_proceso,fechas_semana, how = 'left', on ='key' )
+
+bunker.loc[bunker['PROCESO'].str.contains('LOF2'),'CD'] = 2
+bunker['CD'].fillna(1,inplace = True)
+
+bunker = pd.merge(bunker,denominadores, how = 'left', on = ['CD','dia'])
+bunker['UNIDADES'] = bunker['UNIDADES_TOTALES'] / bunker['denominador']
+bunker.loc[bunker['UNIDADES']==np.inf,'UNIDADES'] = 0
+bunker['UNIDADES'] = bunker['UNIDADES'].fillna(0)
+bunker['FECHA_CARGA'] = fecha_carga
+bunker['ORIGEN'] = 'Manual'
+bunker['SEMANA'] = data['SEMANA_ACTUAL'].astype('int64')
+bunker['TIPO'] = 'Plan Ajustado'
+
+total_proceso[total_proceso['PROCESO'] == 'XDOCK NACIONAL  LOF 1']
+a = bunker[bunker['PROCESO'] == 'XDOCK NACIONAL  LOF 1']
+# =============================================================================
+# Plan Mensual con máxima fecha de carga
+# =============================================================================
+
+#%%
+
+data_  = BI.QxGCP( query = """
+                  SELECT  
+                      SEMANA_ACTUAL, 
+                      MES,
+                      PROCESO, 
+                      UNIDADES, 
+                      FECHA_CARGA,  
+                      FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.plan_mensual` 
+                      where FECHA_CARGA = '""" + fm_ + """'"""  , path =path_gcp )
+
+ini_ = calendario[calendario['SEMANA_PROGRAMACION'] == data_['SEMANA_ACTUAL'].min()]['FECHA_INICIO'].unique()[0]
+fin_ = calendario[calendario['SEMANA_PROGRAMACION'] == data_['SEMANA_ACTUAL'].max()]['FECHA_TERMINO'].unique()[0]
+
+fechas_semana_ = pd.DataFrame(pd.date_range(ini_, fin_, freq='D'), columns = ['fecha'])
+fechas_semana_['Fecha_Min'] = fechas_semana_['fecha'] - pd.to_timedelta(fechas_semana_['fecha'].dt.dayofweek,'d')
+
+fechas_semana_ = fechas_semana_.merge(
+    calendario[['FECHA_INICIO','SEMANA_PROGRAMACION']],
+    how = 'left',
+    left_on = 'Fecha_Min',
+    right_on = 'FECHA_INICIO').\
+        drop(columns = ['Fecha_Min','FECHA_INICIO'])
+
+fechas_semana_['dia'] = fechas_semana_['fecha'].dt.day_name()
+
+fechas_semana_['key'] = 1
+
+total_proceso_cc = data_.groupby(['PROCESO','SEMANA_ACTUAL'])['UNIDADES'].sum().reset_index()
+total_proceso_cc = total_proceso_cc.rename(columns = {'UNIDADES':'UNIDADES_TOTALES'})
+total_proceso_cc['key'] = 1
+
+
+cc = pd.merge(
+    total_proceso_cc,
+    fechas_semana_, 
+    how = 'left', 
+    left_on = ['key','SEMANA_ACTUAL'],
+    right_on = ['key','SEMANA_PROGRAMACION']
+    )
+
+cc.loc[cc['PROCESO'].str.contains('LOF2'),'CD'] = 2
+cc['CD'].fillna(1,inplace = True)
+
+cc = pd.merge(cc,denominadores, how = 'left', on = ['CD','dia'])
+cc['UNIDADES'] = cc['UNIDADES_TOTALES'] / cc['denominador']
+cc.loc[cc['UNIDADES']==np.inf,'UNIDADES'] = 0
+cc['UNIDADES'] = cc['UNIDADES'].fillna(0)
+cc['FECHA_CARGA'] = fecha_carga
+cc['ORIGEN'] = 'Manual'
+cc = cc.rename(columns = {'SEMANA_ACTUAL':'SEMANA'})
+cc['TIPO'] = 'Plan Mensual'
+cc = cc[['PROCESO','UNIDADES_TOTALES','key','fecha','dia','CD','denominador','UNIDADES','FECHA_CARGA','ORIGEN','SEMANA','TIPO']]
+
+#%% CARGA A GCP
+      
+bunker.columns = [col.upper() for col in bunker.columns]
+cc.columns = [col.upper() for col in cc.columns]
+
+df_b = bunker.drop(['KEY','CD'],axis=1)
+df_cc = cc.drop(['KEY','CD'],axis=1)
+
+df = pd.concat([df_b,df_cc])
+
+df.loc[df['PROCESO'] == 'PROCESO MMEE','ORIGEN'] = 'Asertividad Manual'
+df.loc[df['PROCESO'] == 'PROCESO MMEE LOF2', 'ORIGEN'] = 'Asertividad Manual'
+df.loc[df['PROCESO'] == 'PROCESO IMPORTADO LOF2', 'ORIGEN'] = 'Asertividad Manual'
+
+BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = TABLE_NAME, Data = df, Append = 1, path = path_gcp)
+    
+#%%
