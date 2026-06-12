@@ -1,0 +1,2410 @@
+CARGA ;ANTENEDORES PLANES
+
+
+@author: igsegoviav
+"""
+
+import pandas as pd
+
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from os import listdir
+import shutil
+
+import numpy as np
+
+import sys
+import os
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.insert(0, path)
+import ToolsBI as BI
+from datetime import datetime,  timedelta,date
+from dateutil.relativedelta import relativedelta
+
+from os import listdir
+import win32api
+
+key_path = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/cnxgcp.json"
+
+path_in = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Mantenedor/Archivos_in"
+
+path_out = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Mantenedor/Archivos_out"
+
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+TABLE_NAME = 'mantenedor_planes_planificacion'
+
+TABLE_ID = PROJECT_NAME + '.' + DATASET_NAME + '.' + TABLE_NAME
+
+
+# =============================================================================
+# =============================================================================
+# =============================================================================
+# # #  INGRESA DATA FRAME
+# =============================================================================
+# =============================================================================
+# =============================================================================
+
+for file in listdir(path_in):
+    
+    print(file)
+    
+    temp = pd.read_excel(path_in+'/'+file)
+    
+    temp.columns = temp.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+    
+    df = temp[['ALMACEN', 'PLANIFICACION', 'CUBO', 'FLUJO_CC', 'PROCESO_CC','CD','TIPO']]
+    
+    df[['PLANIFICACION', 'CUBO', 'FLUJO_CC', 'PROCESO_CC','CD','TIPO']] = df[['PLANIFICACION', 'CUBO', 'FLUJO_CC', 'PROCESO_CC','CD','TIPO']].astype('str')
+    
+    df['FECHA_CARGA'] = datetime.now()    
+        
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = TABLE_NAME, Data = df, Append = 1, path = key_path)
+
+    shutil.move(path_in + '/'+ file, path_out + '/' + file)
+
+
+
+El jue, 15 jun 2023 a las 15:27, Ismael segovia (<ismasegoviavial@gmail.com>) escribió:
+CARGA_CALENDARIO
+import pandas as pd
+
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from os import listdir
+import shutil
+
+import numpy as np
+
+import sys
+import os
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.insert(0, path)
+import ToolsBI as BI
+from datetime import datetime,  timedelta,date
+from dateutil.relativedelta import relativedelta
+
+from os import listdir
+import win32api
+
+key_path = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/cnxgcp.json"
+
+path_in = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Calendario/Archivos_in"
+
+path_out = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Calendario/Archivos_out"
+
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+TABLE_NAME = 'calendario'
+
+TABLE_ID = PROJECT_NAME + '.' + DATASET_NAME + '.' + TABLE_NAME
+
+#%%
+# =============================================================================
+# =============================================================================
+# =============================================================================
+# # #  INGRESA DATA FRAME
+# =============================================================================
+# =============================================================================
+# =============================================================================
+
+for file in listdir(path_in):
+    
+    print(file)
+    
+    temp = pd.read_excel(path_in+'/'+file)
+    
+    temp.columns = temp.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+    
+    df = temp[['FECHA_INICIO', 'FECHA_TERMINO', 'SEMANA_COMERCIAL', 'SEMANA_PROGRAMACION']]
+
+    df['FECHA_CARGA'] = datetime.now()    
+    
+    # a = df.sort_values(by = ['SEMANA_COMERCIAL','FECHA_INICIO']).drop_duplicates(subset = 'SEMANA_COMERCIAL')
+        
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = TABLE_NAME, Data = df, Append = 0)
+
+    shutil.move(path_in + '/'+ file, path_out + '/' + file)
+
+El jue, 15 jun 2023 a las 15:25, Ismael segovia (<ismasegoviavial@gmail.com>) escribió:
+ACTUALIZACION_REALES_PLANES
+
+
+@author: malejvillalobos
+"""
+
+#%%
+
+import sys, os
+path = rf'C:\Users\{os.getlogin()}\Falabella\BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS\EJECUTAR_QUERY'
+sys.path.append(path)
+import ToolsBI as bi
+import pandas as pd
+
+import numpy as np
+from datetime import datetime
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+
+#%%
+
+path_in = rf'C:\Users\{os.getlogin()}\Falabella\BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS\GERENCIAS\PLANIFICACIÓN\COMITE_COMERCIAL_BUNKER_CUBO\Script\Carga_GCP\Actualizacion_on_time\Reales y Planes\Archivos_in'
+# path_in = rf'C:\Users\malejvillalobos\Falabella\BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS\GERENCIAS\PLANIFICACIÓN\COMITE_COMERCIAL_BUNKER_CUBO\Script\Carga_GCP\Actualizacion_on_time\Prueba'
+df = pd.ExcelFile(rf'{path_in}\{os.listdir(path_in)[0]}').parse()
+
+# df = df.tail(1).reset_index(drop = True)
+
+fecha_carga = datetime.now()
+
+
+#%%
+
+for fila in range(len(df)):
+    
+    Proceso = df['PROCESO'][fila]
+    LOF = df['CD'][fila]
+    Semana = df['SEMANA'][fila]
+    Nueva_Cantidad = df['NUEVA_CANTIDAD'][fila]
+    Tipo = df['TIPO'][fila]
+    Tabla = df['TABLA'][fila]
+    Origen = df['ORIGEN'][fila]
+    
+    if Tabla == 'Reales Bunker':
+    
+        if pd.isnull(df['FECHA'][fila]):
+        
+            print(f'Modificando valor Real semanal, proceso {Proceso}, de {LOF} en la semana {Semana}, Tipo {Tipo}.')
+        
+            data_GCP = bi.QxGCP(f'''
+            SELECT 
+                Reales.CD,
+                Reales.TIPO,
+                Reales.FLUJO,
+                Reales.PROCESO,
+                Reales.CANTIDAD,
+                Reales.FECHA,
+                Reales.DIA,
+                Reales.FECHA_CARGA,
+                Reales.ORIGEN,
+                Reales.SEMANA
+            FROM 
+                flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc as Reales
+                INNER JOIN (
+                    SELECT
+                            CD,
+                            TIPO,
+                            FLUJO,
+                            PROCESO,
+                            FECHA,
+                            SEMANA,
+                            ORIGEN,
+                            MAX(FECHA_CARGA) Fecha_Max
+                        FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc`
+                        GROUP BY
+                            CD,
+                            TIPO,
+                            FLUJO,
+                            SEMANA,
+                            PROCESO,
+                            FECHA,
+                            ORIGEN
+                ) MaxPorSemana 
+                ON Reales.FECHA_CARGA = MaxPorSemana.Fecha_Max
+                AND Reales.CD = MaxPorSemana.CD
+                AND Reales.TIPO = MaxPorSemana.TIPO
+                AND Reales.FLUJO = MaxPorSemana.FLUJO
+                AND Reales.PROCESO = MaxPorSemana.PROCESO
+                AND Reales.FECHA = MaxPorSemana.FECHA
+                AND Reales.ORIGEN = MaxPorSemana.ORIGEN
+                AND Reales.SEMANA = MaxPorSemana.SEMANA
+            WHERE 1 = 1
+                AND Reales.Proceso = '{Proceso}'
+                AND Reales.CD = '{LOF}'
+                AND Reales.Semana = {Semana}
+                AND Reales.Tipo = '{Tipo}'
+            ''')
+                                
+            if data_GCP.empty == False:
+                print(f'Total Inicial: {data_GCP["CANTIDAD"].sum()}')
+                print(f'A Alcanzar: {Nueva_Cantidad}')
+                
+                Total_Actual = data_GCP['CANTIDAD'].sum()
+                
+                Dif = Nueva_Cantidad - Total_Actual
+                
+                data_GCP['Cant_Nueva'] = round(data_GCP['CANTIDAD'] + Dif/len(data_GCP),0)
+                
+                delta = Nueva_Cantidad - data_GCP['Cant_Nueva'].sum() 
+                random = np.random.randint(0,len(data_GCP), size = 1)[0]
+                data_GCP.loc[random, 'Cant_Nueva'] = data_GCP.loc[random, 'Cant_Nueva'] + delta
+                negativos_totales = -data_GCP[data_GCP['Cant_Nueva'] < 0]['Cant_Nueva'].sum()
+                
+                if abs(negativos_totales) > 0:
+                    
+                    while len(data_GCP[data_GCP['Cant_Nueva']<0]) > 0: 
+                        print("Holaaasadlajshdkasjhdkashjdh")
+                        neg = data_GCP.loc[data_GCP['Cant_Nueva'] < 0]
+                        random_neg = neg.sample(1)
+                        
+                        pos = data_GCP.loc[data_GCP['Cant_Nueva'] > 0]
+                        random_pos = pos.sample(1)
+                        
+                        if abs(random_pos['Cant_Nueva'].values[0]) >= abs(random_neg['Cant_Nueva'].values[0]):
+                            print(f'Valor Positivo {random_pos["Cant_Nueva"].values[0]} es mayor o igual que el negativo: {random_neg["Cant_Nueva"].values[0]}')
+                            
+                            data_GCP.loc[random_pos.index,'Cant_Nueva'] = data_GCP.loc[random_pos.index, 'Cant_Nueva'].values[0] + data_GCP.loc[random_neg.index,'Cant_Nueva'].values[0]
+                            data_GCP.loc[random_neg.index,'Cant_Nueva'] = 0
+                        else:
+                            print(f'Valor Positivo {random_pos["Cant_Nueva"].values[0]} es menor que el negativo: {random_neg["Cant_Nueva"].values[0]}')
+                            
+                            data_GCP.loc[random_neg.index,'Cant_Nueva'] = data_GCP.loc[random_neg.index,'Cant_Nueva'].values[0] + data_GCP.loc[random_pos.index, 'Cant_Nueva'].values[0] 
+                            data_GCP.loc[random_pos.index,'Cant_Nueva'] = 0
+                                
+                data_GCP['CANTIDAD'] = data_GCP['Cant_Nueva']
+                data_GCP = data_GCP.drop(columns = 'Cant_Nueva')
+                
+                print(f'Cantidad Lograda: {data_GCP["CANTIDAD"].sum()}')
+                
+                #% Eliminar Data
+                
+                bi.QxSentenceGCP(f'''
+                DELETE FROM
+                    flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc as Reales
+                WHERE 
+                    Reales.Proceso = '{Proceso}'
+                    AND Reales.CD = '{LOF}'
+                    AND Reales.Semana = {Semana}
+                    AND Reales.Fecha_Carga = (
+                        SELECT 
+                            MAX(FECHA_CARGA)
+                        FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc as Reales
+                        WHERE     
+                            Reales.Proceso = '{Proceso}'
+                            AND Reales.CD = '{LOF}'
+                            AND Reales.Semana = {Semana}
+                            )'''
+                )
+                
+                data_GCP['FECHA_CARGA'] = fecha_carga
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP, Append = 1)
+            else:
+                
+                print(f'Data de Proceso Semanal: {Proceso}, de {LOF} en la semana {Semana} no está escrita en GCP.')
+                
+                data = df.filter(items = [fila], axis = 0)
+                
+                flujo = bi.QxGCP(f'''
+                SELECT DISTINCT FLUJO, PROCESO FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc
+                WHERE PROCESO = '{Proceso}'
+                ''')
+                
+                data = data.merge(flujo, on = 'PROCESO', how = 'left')
+                
+                calendario = bi.QxGCP(f'''
+                SELECT FECHA_INICIO, FECHA_TERMINO, SEMANA_PROGRAMACION 
+                FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.calendario` 
+                WHERE SEMANA_PROGRAMACION = {Semana}
+                                      ''')
+                inicio = calendario['FECHA_INICIO'][0]
+                termino = calendario['FECHA_TERMINO'][0]
+
+                fechas = pd.DataFrame({'FECHA':pd.date_range(start = inicio, end = termino)})
+                fechas['DIA'] = fechas['FECHA'].dt.day_name()
+                fechas = fechas[~fechas['DIA'].isin(['Saturday','Sunday'])]
+                fechas['Join'] = 1
+                
+                data['Join'] = 1
+                
+                data_GCP = fechas.merge(data.drop(columns = 'FECHA'), how = 'left', on = 'Join').drop(columns = ['Join','TABLA'])
+                
+                data_GCP['CANTIDAD'] = round(data_GCP['NUEVA_CANTIDAD'] / len(data_GCP),0)
+                delta = Nueva_Cantidad - data_GCP['CANTIDAD'].sum()
+                random = np.random.randint(0,len(data_GCP), size = 1)[0]
+                data_GCP.loc[random, 'CANTIDAD'] = data_GCP.loc[random, 'CANTIDAD'] + delta
+                data_GCP = data_GCP.drop(columns = 'NUEVA_CANTIDAD')
+                
+                data_GCP['FECHA_CARGA'] = fecha_carga
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP, Append = 1)
+                
+                print(f'Data de Proceso Semanal: {Proceso}, de {LOF} en la semana {Semana} escrita correctamente en GCP.')
+                
+        else:
+            Fecha = df['FECHA'][fila].strftime('%Y-%m-%d')
+    
+            print(f'Modificando valor Real Diario, proceso {Proceso}, de {LOF} en la semana {Semana}, con fecha {Fecha}')
+            
+            data_GCP = bi.QxGCP(f'''
+            SELECT 
+                Reales.CD,
+                Reales.TIPO,
+                Reales.FLUJO,
+                Reales.PROCESO,
+                Reales.CANTIDAD,
+                Reales.FECHA,
+                Reales.DIA,
+                Reales.FECHA_CARGA,
+                Reales.ORIGEN,
+                Reales.SEMANA
+            FROM 
+                flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc as Reales
+                INNER JOIN (
+                    SELECT
+                            CD,
+                            TIPO,
+                            FLUJO,
+                            PROCESO,
+                            FECHA,
+                            SEMANA,
+                            ORIGEN,
+                            MAX(FECHA_CARGA) Fecha_Max
+                        FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc`
+                        GROUP BY
+                            CD,
+                            TIPO,
+                            FLUJO,
+                            SEMANA,
+                            PROCESO,
+                            FECHA,
+                            ORIGEN
+                ) MaxPorSemana 
+                ON Reales.FECHA_CARGA = MaxPorSemana.Fecha_Max
+                AND Reales.CD = MaxPorSemana.CD
+                AND Reales.TIPO = MaxPorSemana.TIPO
+                AND Reales.FLUJO = MaxPorSemana.FLUJO
+                AND Reales.PROCESO = MaxPorSemana.PROCESO
+                AND Reales.FECHA = MaxPorSemana.FECHA
+                AND Reales.ORIGEN = MaxPorSemana.ORIGEN
+                AND Reales.SEMANA = MaxPorSemana.SEMANA
+            WHERE 1 = 1
+                AND Reales.Proceso = '{Proceso}'
+                AND Reales.CD = '{LOF}'
+                AND Reales.Semana = {Semana}
+                AND Reales.Fecha = '{Fecha}'
+                AND Reales.Tipo = '{Tipo}'
+            ''')
+            
+            print('Estoy aca')
+            
+            if data_GCP.empty == False:
+                 
+                print(f'Total Inicial: {data_GCP["CANTIDAD"].sum()}')
+                print(f'A Alcanzar: {Nueva_Cantidad}')
+            
+                bi.QxSentenceGCP(f'''
+                DELETE FROM
+                    flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc as Reales
+                WHERE TRUE
+                    AND Reales.Proceso = '{Proceso}'
+                    AND Reales.CD = '{LOF}'
+                    AND Reales.Semana = {Semana}
+                    AND Reales.Fecha = '{Fecha}'
+                    AND Reales.Tipo = '{Tipo}'
+                    AND Reales.Fecha_Carga = (
+                        SELECT 
+                            MAX(FECHA_CARGA)
+                        FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc as Reales
+                        WHERE TRUE 
+                            AND Reales.Proceso = '{Proceso}'
+                            AND Reales.CD = '{LOF}'
+                            AND Reales.Semana = {Semana}
+                            AND Reales.Fecha = '{Fecha}'
+                            AND Reales.Tipo = '{Tipo}'
+                        )'''
+                )
+                
+                data_GCP['CANTIDAD'] = Nueva_Cantidad
+                data_GCP['FECHA_CARGA'] = fecha_carga
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+            
+                print(f'Cantidad Lograda: {data_GCP["CANTIDAD"].sum()}')
+                
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP, Append = 1)
+                
+            else:
+                print(f'Data de Proceso Diario: {Proceso}, de {LOF} en la semana {Semana}, con fecha {Fecha} no está escrita en GCP')
+                
+                data = df.filter(items = [fila], axis = 0)
+                
+                flujo = bi.QxGCP(f'''
+                SELECT DISTINCT FLUJO, PROCESO FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc
+                WHERE PROCESO = '{Proceso}'
+                ''')
+                
+                data_GCP = data.merge(flujo, on = 'PROCESO', how = 'left')
+                data_GCP['CANTIDAD'] = data_GCP['NUEVA_CANTIDAD']
+                data_GCP['FECHA_CARGA'] = fecha_carga
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+                data_GCP = data_GCP.drop(columns = 'NUEVA_CANTIDAD')
+                data_GCP['DIA'] = data_GCP['FECHA'].dt.day_name()
+                
+                data_GCP = data_GCP.drop(columns = 'TABLA')
+                
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = data_GCP, Append = 1)
+                
+                print(f'Data de Proceso Semanal: {Proceso}, de {LOF} en la semana {Semana} escrita correctamente en GCP.')
+
+    elif Tabla == 'Planes':
+        
+        if pd.isnull(df['FECHA'][fila]):
+        
+            print(f'Modificando valor de Plan semanal, proceso {Proceso}, de {LOF} en la semana {Semana}')
+        
+            data_GCP = bi.QxGCP(f'''
+            SELECT
+              SEGUIMIENTO.*
+            FROM 
+              `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc` SEGUIMIENTO
+              INNER JOIN
+                    (SELECT DISTINCT
+                      CD,
+                      TIPO,
+                      FLUJO_CC,
+                      PROCESO_CC,
+                    CONCAT(PLANIFICACION,TIPO) LLAVE
+                    FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.mantenedor_planes_planificacion`) MANTENEDOR
+                    ON MANTENEDOR.LLAVE = CONCAT(SEGUIMIENTO.PROCESO,SEGUIMIENTO.TIPO)
+              INNER JOIN (
+                  SELECT
+                      CONCAT(PROCESO,TIPO) LLAVE,
+                      SEMANA,
+                      FECHA,
+                      MAX(FECHA_CARGA) FECHA_CARGA,
+                      ORIGEN
+                  FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc` SEGUIMIENTO_MAX
+                  GROUP BY
+                      LLAVE,
+                      FECHA,
+                      SEMANA,
+                      ORIGEN
+              ) SEGUIMIENTO_MAX
+              ON SEGUIMIENTO_MAX.LLAVE = CONCAT(SEGUIMIENTO.PROCESO,SEGUIMIENTO.TIPO)
+              AND SEGUIMIENTO_MAX.FECHA_CARGA = SEGUIMIENTO.FECHA_CARGA
+              AND SEGUIMIENTO_MAX.FECHA = SEGUIMIENTO.FECHA
+              AND SEGUIMIENTO_MAX.SEMANA = SEGUIMIENTO.SEMANA
+              AND SEGUIMIENTO_MAX.ORIGEN = SEGUIMIENTO.ORIGEN
+            WHERE TRUE
+              AND MANTENEDOR.PROCESO_CC = '{Proceso}'
+              AND MANTENEDOR.TIPO = '{Tipo}'
+              AND SEGUIMIENTO.SEMANA = {Semana}
+              AND MANTENEDOR.CD = '{LOF}'
+              AND SEGUIMIENTO.ORIGEN = '{Origen}'
+                ''')
+            
+            if data_GCP.empty == False:
+                
+                Proceso_plan = data_GCP['PROCESO'].unique()[0]
+                
+                print('Update de valor previamente escrito')
+                 
+                print(f'- Total Inicial: {data_GCP["UNIDADES"].sum ()}')
+                print(f'- A Alcanzar: {Nueva_Cantidad}')
+                
+                Total_Actual = data_GCP['UNIDADES'].sum()
+                
+                Dif = Nueva_Cantidad - Total_Actual
+                
+                data_GCP['Cant_Nueva'] = round(data_GCP['UNIDADES'] + Dif/len(data_GCP),0)
+                
+                delta = Nueva_Cantidad - data_GCP['Cant_Nueva'].sum() 
+                random = np.random.randint(0,len(data_GCP), size = 1)[0]
+                data_GCP.loc[random, 'Cant_Nueva'] = data_GCP.loc[random, 'Cant_Nueva'] + delta
+                negativos_totales = -data_GCP[data_GCP['Cant_Nueva'] < 0]['Cant_Nueva'].sum()
+                
+                if abs(negativos_totales) > 0:
+                    
+                    while len(data_GCP[data_GCP['Cant_Nueva']<0]) > 0: 
+                        neg = data_GCP.loc[data_GCP['Cant_Nueva'] < 0]
+                        random_neg = neg.sample(1)
+                        
+                        pos = data_GCP.loc[data_GCP['Cant_Nueva'] > 0]
+                        random_pos = pos.sample(1)
+                        
+                        if abs(random_pos['Cant_Nueva'].values[0]) >= abs(random_neg['Cant_Nueva'].values[0]):
+                            print(f'Valor Positivo {random_pos["Cant_Nueva"].values[0]} es mayor o igual que el negativo: {random_neg["Cant_Nueva"].values[0]}')
+                            
+                            data_GCP.loc[random_pos.index,'Cant_Nueva'] = data_GCP.loc[random_pos.index, 'Cant_Nueva'].values[0] + data_GCP.loc[random_neg.index,'Cant_Nueva'].values[0]
+                            data_GCP.loc[random_neg.index,'Cant_Nueva'] = 0
+                        else:
+                            print(f'Valor Positivo {random_pos["Cant_Nueva"].values[0]} es menor que el negativo: {random_neg["Cant_Nueva"].values[0]}')
+                            
+                            data_GCP.loc[random_neg.index,'Cant_Nueva'] = data_GCP.loc[random_neg.index,'Cant_Nueva'].values[0] + data_GCP.loc[random_pos.index, 'Cant_Nueva'].values[0] 
+                            data_GCP.loc[random_pos.index,'Cant_Nueva'] = 0
+                
+                data_GCP['UNIDADES_TOTALES'] = Nueva_Cantidad
+                data_GCP['UNIDADES'] = data_GCP['Cant_Nueva']
+                data_GCP = data_GCP.drop(columns = 'Cant_Nueva')
+                
+                print(f'- Cantidad Lograda: {data_GCP["UNIDADES_TOTALES"].sample(1).values[0]}')
+                
+                #% Eliminar Data            
+                
+                bi.QxSentenceGCP(f'''
+                DELETE FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc
+                WHERE PROCESO = '{Proceso_plan}'
+                AND SEMANA = {Semana}
+                AND FECHA_CARGA = (
+                  SELECT MAX(FECHA_CARGA)
+                  FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc
+                  WHERE PROCESO = '{Proceso_plan}'
+                  AND SEMANA = {Semana})
+                '''
+                )
+                data_GCP['FECHA_CARGA'] = fecha_carga
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP, Append = 1)
+            else:
+                
+                                
+                print(f'Data de Proceso Semanal: {Proceso}, de {LOF} en la semana {Semana} no está escrita en GCP')
+                print('Agregando valor que no estaba escrito')
+                
+                data_GCP = bi.QxGCP(f'''
+                SELECT
+                  SEGUIMIENTO.PROCESO,
+                  SEGUIMIENTO.UNIDADES_TOTALES,
+                  SEGUIMIENTO.ORIGEN, 
+                  SEGUIMIENTO.TIPO
+                FROM 
+                  `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc` SEGUIMIENTO
+                  INNER JOIN
+                        (SELECT DISTINCT
+                          CD,
+                          TIPO,
+                          FLUJO_CC,
+                          PROCESO_CC,
+                        CONCAT(PLANIFICACION,TIPO) LLAVE
+                        FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.mantenedor_planes_planificacion`) MANTENEDOR
+                        ON MANTENEDOR.LLAVE = CONCAT(SEGUIMIENTO.PROCESO,SEGUIMIENTO.TIPO)
+                WHERE TRUE
+                  AND MANTENEDOR.PROCESO_CC = '{Proceso}'
+                  AND MANTENEDOR.TIPO = '{Tipo}'
+                  AND MANTENEDOR.CD = '{LOF}'
+                  AND SEGUIMIENTO.ORIGEN = '{Origen}' LIMIT 1
+                  ''')
+                  
+                data_GCP['UNIDADES_TOTALES'] = Nueva_Cantidad
+                data_GCP['SEMANA'] = Semana
+                
+                calendario = bi.QxGCP(f'''
+                SELECT FECHA_INICIO, FECHA_TERMINO, SEMANA_PROGRAMACION 
+                FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.calendario` 
+                WHERE SEMANA_PROGRAMACION = {Semana}
+                                      ''')
+                                      
+                inicio = calendario['FECHA_INICIO'][0]
+                termino = calendario['FECHA_TERMINO'][0]
+
+                fechas = pd.DataFrame({'FECHA':pd.date_range(start = inicio, end = termino)})
+                fechas['DIA'] = fechas['FECHA'].dt.day_name()
+                fechas = fechas[~fechas['DIA'].isin(['Saturday','Sunday'])]
+                fechas['Join'] = 1
+                
+                data_GCP['Join'] = 1
+                
+                data_GCP = fechas.merge(data_GCP, how = 'left', on = 'Join').drop(columns = 'Join')
+                data_GCP['DENOMINADOR'] = len(data_GCP)
+                data_GCP['UNIDADES'] = round(data_GCP['UNIDADES_TOTALES']/data_GCP['DENOMINADOR'],0)
+                
+                delta = Nueva_Cantidad - data_GCP['UNIDADES'].sum()
+                random = np.random.randint(0,len(data_GCP), size = 1)[0]
+                data_GCP.loc[random, 'UNIDADES'] = data_GCP.loc[random, 'UNIDADES'] + delta                
+                data_GCP['FECHA_CARGA'] = fecha_carga     
+                             
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+                            
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP, Append = 1)
+                
+        else:
+            
+            Fecha = df['FECHA'][fila].strftime('%Y-%m-%d')
+
+            print(f'Modificando valor de plan diario, proceso {Proceso}, de {LOF} en la semana {Semana}, con fecha {Fecha}')
+            
+            data_GCP = bi.QxGCP(f'''
+            SELECT
+              SEGUIMIENTO.*
+            FROM 
+              `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc` SEGUIMIENTO
+              INNER JOIN
+                    (SELECT DISTINCT
+                      CD,
+                      TIPO,
+                      FLUJO_CC,
+                      PROCESO_CC,
+                    CONCAT(PLANIFICACION,TIPO) LLAVE
+                    FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.mantenedor_planes_planificacion`) MANTENEDOR
+                    ON MANTENEDOR.LLAVE = CONCAT(SEGUIMIENTO.PROCESO,SEGUIMIENTO.TIPO)
+              INNER JOIN (
+                  SELECT
+                      CONCAT(PROCESO,TIPO) LLAVE,
+                      SEMANA,
+                      FECHA,
+                      MAX(FECHA_CARGA) FECHA_CARGA,
+                      ORIGEN
+                  FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc` SEGUIMIENTO_MAX
+                  GROUP BY
+                      LLAVE,
+                      FECHA,
+                      SEMANA,
+                      ORIGEN
+              ) SEGUIMIENTO_MAX
+              ON SEGUIMIENTO_MAX.LLAVE = CONCAT(SEGUIMIENTO.PROCESO,SEGUIMIENTO.TIPO)
+              AND SEGUIMIENTO_MAX.FECHA_CARGA = SEGUIMIENTO.FECHA_CARGA
+              AND SEGUIMIENTO_MAX.FECHA = SEGUIMIENTO.FECHA
+              AND SEGUIMIENTO_MAX.SEMANA = SEGUIMIENTO.SEMANA
+              AND SEGUIMIENTO_MAX.ORIGEN = SEGUIMIENTO.ORIGEN
+            WHERE TRUE
+              AND MANTENEDOR.PROCESO_CC = '{Proceso}'
+              AND MANTENEDOR.TIPO = '{Tipo}'
+              AND SEGUIMIENTO.SEMANA = {Semana}
+              AND MANTENEDOR.CD = '{LOF}'
+              AND SEGUIMIENTO.FECHA = '{Fecha}'
+              AND SEGUIMIENTO.ORIGEN = '{Origen}'
+            ''')
+            
+            
+            if data_GCP.empty == False:
+                
+                Proceso_plan = data_GCP['PROCESO'].unique()[0]
+                 
+                print(f'Total Inicial: {data_GCP["UNIDADES"].sum()}')
+                print(f'A Alcanzar: {Nueva_Cantidad}')
+            
+                bi.QxSentenceGCP(f'''
+                DELETE FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc
+                WHERE PROCESO = '{Proceso_plan}'
+                AND SEMANA = {Semana}
+                AND FECHA = '{Fecha}'
+                AND TIPO = '{Tipo}'
+                AND FECHA_CARGA = (
+                  SELECT MAX(FECHA_CARGA)
+                  FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.formato_bunker_cc
+                  WHERE PROCESO = '{Proceso_plan}'
+                  AND SEMANA = {Semana}
+                  AND FECHA = '{Fecha}'
+                  AND TIPO = '{Tipo}'
+                  )''')
+                
+                data_GCP['UNIDADES'] = Nueva_Cantidad
+                data_GCP['FECHA_CARGA'] = fecha_carga
+                data_GCP['FLAG_ACT_MANUAL'] = 1
+            
+                print(f'Cantidad Lograda: {data_GCP["UNIDADES"].sum()}')
+                
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP, Append = 1)
+                
+            else:
+                
+                print(f'Data de Proceso Plan Diario: {Proceso}, de {LOF} en la semana {Semana}, con fecha {Fecha} no está escrita en GCP')
+                print('Agregando valor Diario que no estaba escrito')
+
+                data = df.filter(items = [fila], axis = 0)
+                
+                
+                flujo = bi.QxGCP(f'''
+                SELECT 
+                    PLANIFICACION, FLUJO_CC FROM `gerencia_planificacion_operativa.mantenedor_planes_planificacion`
+                WHERE 
+                    PROCESO_CC = '{Proceso}'
+                    AND CD = '{LOF}'
+                    AND TIPO = '{Tipo}'
+                ''')     
+                
+                data['PROCESO'] = flujo['PLANIFICACION'][0]
+                data['UNIDADES_TOTALES'] = data['NUEVA_CANTIDAD']
+                data['UNIDADES'] = data['NUEVA_CANTIDAD']
+                data['DIA'] = data['FECHA'].dt.day_name()
+                data['DENOMINADOR'] = 5
+                data['FECHA_CARGA'] = fecha_carga
+                data['FLAG_ACT_MANUAL'] = 1               
+                
+                data_GCP = data.drop(columns = ['CD','TABLA','NUEVA_CANTIDAD'])
+                
+                data_GCP = bi.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP)
+                bi.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = data_GCP, Append = 1)
+                
+                print(f'Data de Proceso Diario: {Proceso}, de {LOF} en la semana {Semana} escrita correctamente en GCP.')                
+     
+
+El jue, 15 jun 2023 a las 15:19, Ismael segovia (<ismasegoviavial@gmail.com>) escribió:
+
+ACTUALIZACION CASCADA
+import pandas as pd
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from os import listdir
+import shutil
+import numpy as np
+import sys
+import os
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.insert(0, path)
+import ToolsBI as BI
+from datetime import datetime,  timedelta,date
+from dateutil.relativedelta import relativedelta
+from os import listdir
+import win32api
+
+path_gcp = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/keys_equipos/bi-logistic-process-planificacion.json"
+
+path_in = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Actualizacion_on_time/Cascada/Archivos_in"
+
+path_out = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Actualizacion_on_time/Cascada/Archivos_out"
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+
+fecha_carga = datetime.now()
+
+for file in listdir(path_in):
+    
+    print(file)
+
+#%%
+try:
+    upgrade_cascada = pd.read_excel(path_in+'/'+file)
+    upgrade_cascada = upgrade_cascada[['Index','OBSERVACION','DOWN','CONTENEDORES','SEMANA_COMEX']]
+    upgrade_cascada['FECHA_CARGA'] = fecha_carga
+    parametro = upgrade_cascada['SEMANA_COMEX'].astype('str').unique()[0]  
+      
+    # =============================================================================
+    
+    BI.QxSentenceGCP(f'''DELETE FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.asertividad_cascada
+                      WHERE SEMANA_COMEX = {parametro} ''',path_gcp)
+                      
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'asertividad_cascada' , Data = upgrade_cascada, Append = 1, path = path_gcp)
+
+    # =============================================================================
+    
+except:
+    print("Archivo no encontrado")
+
+# shutil.move(path_in + '/'+ file, path_out + '/' + file)
+
+El jue, 15 jun 2023 a las 15:17, Ismael segovia (<ismasegoviavial@gmail.com>) escribió:
+REALES MANUALES
+
+
+#%%
+
+from datetime import datetime, timedelta
+import sys
+import logging
+import traceback
+import os, sys
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.append(path)
+import ToolsBI as BI
+import pandas as pd
+import numpy as np
+
+path_gcp = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/keys_equipos/bi-logistic-process-planificacion.json"
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+
+#%%
+calendario= BI.QxGCP( query = """SELECT  * FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.calendario` """, path =path_gcp )
+
+# # %% Por Rango
+
+fecha_inicial = '2023-06-05'
+fecha_fin = '2023-06-11'
+
+Fechas_Faltantes = pd.DataFrame({'Fechas_Faltantes':pd.date_range(start = fecha_inicial, end = fecha_fin)})
+
+Fechas_Faltantes['Fechas_Faltantes'] = Fechas_Faltantes['Fechas_Faltantes'].dt.strftime('%Y-%m-%d')
+#%% Por Fechas Puntuales
+
+#fechas = ['2023-06-09']
+
+#Fechas_Faltantes = pd.DataFrame({'Fechas_Faltantes':fechas})
+
+#%% Por Fechas
+
+Real_Trf_LOF1_ = BI.QxBI3('sab',
+'''
+SELECT
+   'LOF1' CD,
+   'Real' TIPO,
+   '1. Recepcion' FLUJO,
+   '1.d. Recepcion Transferencia' PROCESO,
+   SUM(CASE 
+        WHEN SUBSTR(F132HIST.CREFEREN, 1, 1) = 'K' THEN F002CURV.QUNIDADE * F132HIST.QCANTIDA 
+        ELSE F132HIST.QCANTIDA
+        END) CANTIDAD,
+   TRUNC(F132HIST.FCREAREG) FECHA,
+   'Sistema' ORIGEN
+FROM F132HIST
+   INNER JOIN F002ARTI ON F132HIST.CREFEREN = F002ARTI.CREFEREN
+   AND  F002ARTI.DDEPARTA<>'J99' AND --ELIMINA MATERIALES
+   F002ARTI.DDEPARTA||F002ARTI.DFAMILIA<>'J1804' -- ELIMINA JUAN VALDEZ
+   left JOIN F043TTRA ON F132HIST.CCENTDIS = F043TTRA.CCENTDIS 
+   AND F132HIST.CTIPTRAB = F043TTRA.CTIPTRAB
+   left JOIN F001ZOAL
+   ON F132HIST.CZONAORI = F001ZOAL.CZONALMA
+   AND F132HIST.CALMACEN = F001ZOAL.CALMACEN
+   LEFT JOIN F002CURV
+   ON F132HIST.CREFEREN = F002CURV.CREFCURV
+   LEFT JOIN F008FUNC F008
+   ON F132HIST.CFUNCION = F008.CFUNCION
+   LEFT Join F054VLOG On F132HIST.CREFEREN = f054vlog.CREFEREN
+   AND F054VLOG.CVARLOGI='1' AND F054VLOG.CCONSIGN='1'
+   LEFT JOIN F009USUA ON F132HIST.COPECREA = F009USUA.CUSUARIO
+WHERE 
+   F132HIST.CALMACEN IN ('944','945')
+   AND (
+   (F132HIST.CFUNCION IN ('RF-46','P') 
+   AND F132HIST.CTIPTRAB In ('RT')) 
+   OR (F132HIST.CFUNCION IN ('GEN_PAL') 
+   AND F132HIST.CTIPTRAB In ('DT'))
+   )
+   AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY
+    TRUNC(F132HIST.FCREAREG)''',Fechas_Faltantes)
+
+
+Real_Recep_Nac_LOF1_ = BI.QxBI3('sab',
+'''
+SELECT 
+    'LOF1' CD,
+            'Real' TIPO,
+            '1. Recepcion' FLUJO,
+            '1.g. Recepcion Nacional' PROCESO,
+    SUM(DECODE(SUBSTR(F069LALB.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F069LALB.QCONRECI) CANTIDAD,
+    TRUNC(F068CALB.FDOCUMEN) FECHA,
+    'Sistema' ORIGEN
+FROM
+    F069LALB 
+    LEFT JOIN F068CALB ON F068CALB.CALBARAN = F069LALB.CALBARAN AND 
+        F068CALB.CALMACEN = F069LALB.CALMACEN AND 
+        F068CALB.CCNSGENT = F069LALB.CCNSGENT AND 
+        F068CALB.CEMPRESA = F069LALB.CEMPRESA AND 
+        F068CALB.CTIPTRAB = F069LALB.CTIPTRAB AND 
+        F069LALB.CENTRADA = F068CALB.CENTRADA
+    LEFT JOIN F002ARTI ON F002ARTI.CEMPRESA = F069LALB.CEMPRESA AND 
+        F002ARTI.CCONSIGN = F069LALB.CCNSGENT AND 
+        F002ARTI.CREFEREN = F069LALB.CREFEREN
+    LEFT JOIN F053MENL ON 
+        F069LALB.CCNSGENT = F053MENL.CCNSGENT AND 
+        F069LALB.CEMPRESA = F053MENL.CEMPRESA AND 
+        F069LALB.CTIPTRAB = F053MENL.CTIPTRAB AND 
+        F069LALB.CENTRADA = F053MENL.CENTRADA AND 
+        F069LALB.CCONTLIN = F053MENL.CCONTLIN AND 
+        F069LALB.CREFEREN = F053MENL.CREFEREN
+    LEFT JOIN F002CURV C ON F069LALB.CREFEREN = C.CREFCURV
+WHERE 1 = 1
+    
+    AND F068CALB.CALMACEN IN ('944')
+    AND F068CALB.CENTRADA NOT LIKE 'BP%'
+    AND F002ARTI.DDEPARTA NOT IN ('J99','J95')
+    AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA NOT IN ('J1804')
+    AND (F068CALB.CENTRADA LIKE '%X%' OR F068CALB.CENTRADA LIKE 'N%')
+    AND F069LALB.CSITLALB = 'FI'
+    AND TO_CHAR(F068CALB.FDOCUMEN,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY
+    TRUNC(F068CALB.FDOCUMEN)''',Fechas_Faltantes)
+
+Real_Proc_Imp_LOF1 = BI.QxBI3('sab',
+'''
+SELECT
+    'LOF1' CD,
+    'Real' TIPO,
+    '2. Procesos' FLUJO,
+    '2.a. Proceso Importado' PROCESO, 
+    SUM(to_number(DECODE(SUBSTR(F132HIST.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F132HIST.QCANTIDA)) CANTIDAD,
+    TRUNC(F132HIST.FCREAREG) FECHA,
+    'Sistema' ORIGEN
+FROM 
+    F132HIST 
+    INNER JOIN F002ARTI ON F132HIST.CREFEREN = F002ARTI.CREFEREN 
+    AND F132HIST.CCONSIGN = F002ARTI.CCONSIGN 
+    AND F132HIST.CEMPRESA = F002ARTI.CEMPRESA 
+    LEFT JOIN F002CURV C ON F132HIST.creferen = C.CREFCURV
+WHERE
+    F132HIST.CFUNCION In ('RF-01','RF-46','RF-19','P','GEN_PAL')
+    AND F132HIST.CALMACEN In ('944','945')
+    AND F132HIST.CTIPTRAB In ('EI','BP','OI','OC','PC','OP','DI')
+    AND F132HIST.TOBSERVA is not null
+    AND F132HIST.CLUGENTR<>'2624'
+    AND F002ARTI.DDEPARTA <> 'J99'
+    AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA <> 'J1804'
+    AND (F132HIST.CFUNCION not In ('GEN_PAL') AND F132HIST.CTIPTRAB not In ('DI'))
+    AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY
+    TRUNC(F132HIST.FCREAREG)''',Fechas_Faltantes)
+
+Guardado_LOF1 = BI.QxBI3('sab',
+'''
+Select 
+    'LOF1' CD,
+    'Real' TIPO,
+    '3. Almacenamiento' FLUJO,
+    CASE 
+    WHEN F132HIST.CALMACEN IN ('913','914','944','945','675') THEN '3.a. Guardado F5'
+    ELSE '3.b. Guardado Internet'
+    END PROCESO,
+    SUM(Decode(SubStr(f132hist.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * f132hist.QCANTIDA) CANTIDAD,
+    Trunc(f132hist.FECHAINI) as FECHA,
+    'Sistema' ORIGEN
+FROM F132HIST
+    INNER JOIN F002ARTI
+    ON f132hist.CCONSIGN = f002arti.CCONSIGN
+    And f132hist.CEMPRESA = f002arti.CEMPRESA
+    And f132hist.CREFEREN = f002arti.CREFEREN
+    LEFT JOIN F002CURV C
+    ON f132hist.CREFEREN = C.CREFCURV
+Where 
+    f132hist.CFUNCION = 'RF-03'
+    AND f002arti.DDEPARTA <> 'J99'
+    AND f002arti.DDEPARTA || f002arti.DFAMILIA <> 'J1804'
+    AND f132hist.CFUNCION = 'RF-03'
+    AND F132HIST.CALMACEN IN ('944','675', -- F5
+    '200','201','209','983') -- DVD
+    AND TO_CHAR(F132HIST.FECHAINI,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY 
+    Trunc(f132hist.FECHAINI),
+    CASE 
+    WHEN F132HIST.CALMACEN IN ('913','914','944','945','675') THEN '3.a. Guardado F5'
+    ELSE '3.b. Guardado Internet'
+    END ''',Fechas_Faltantes)
+
+Real_Xdock_Imp_L1 = BI.QxBI4('sab',
+'''
+Select distinct f132HIST.CALMACEN,
+       f132hist.CFUNCION,
+       f132hist.CNUPALET,
+       f132hist.cpaledes,
+       f132hist.CTIPTRAB,
+       f132hist.CREFEREN,
+       C.CREFEREN,
+       f132hist.CENTRADA,
+       f132hist.CNPEDIDO,
+       f132hist.CLUGENTR,
+       Decode(F132HIST.CLUGENTR,'944','CD',Decode(F132HIST.CLUGENTR,'','SORTER' ,'XDOCK')) DESTINO,
+       f132hist.COPECREA,
+       f132hist.fcreareg,
+       trunc(f132hist.fcreareg) as fecha,
+       F002ARTI.DDEPARTA AS LINEA, 
+       F002ARTI.DDEPARTA||F002ARTI.DFAMILIA AS SUBLINEA, 
+       Substr(F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART,1,7) AS CLASE, 
+       F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART AS SUBCLASE, 
+       F002ARTI.DMARCART, 
+       F002ARTI.CTEMPORADA,
+       to_number(DECODE(SUBSTR(F132HIST.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F132HIST.QCANTIDA) CANTIDAD,
+       F132HIST.TOBSERVA
+From
+       F132HIST F132HIST, F002CURV C, F002ARTI,
+       (Select F132HIST.CPALEDES, F132HIST.COPECREA
+        From SICAD30.F132HIST F132HIST
+        Where  (TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''', 'Fechas_Faltantes','''
+               And F132HIST.CFUNCION In ('RF-01', 'RF-46', 'RF-19', 'P', 'GEN_PAL')
+               And F132HIST.CALMACEN In ('944', '945')
+               And F132HIST.CTIPTRAB In ('EI', 'BP', 'OI', 'OC', 'PC', 'OP', 'DI')
+               And F132HIST.TOBSERVA Is Not Null
+               And F132HIST.CLUGENTR not in ('2624','944','9944','200','2000','201','9941','209','9949',
+                                             '943','9943','675','1975','983','9983','991','9991'))) P
+Where  F132HIST.CREFEREN = F002ARTI.CREFEREN
+       AND F132HIST.CCONSIGN = F002ARTI.CCONSIGN
+       AND F132HIST.CEMPRESA = F002ARTI.CEMPRESA
+       AND F132HIST.creferen = C.CREFCURV(+)
+       and P.CPALEDES = f132hist.CNUPALET(+)
+       AND P.COPECREA = F132HIST.COPECREA(+)
+       AND F132HIST.CFUNCION IN ('RF-01', 'RF-46', 'RF-19', 'P', 'GEN_PAL')
+       AND F132HIST.CTIPTRAB IN ('EI', 'BP', 'OI', 'OC', 'PC', 'OP', 'DI') 
+       AND F002ARTI.DDEPARTA not in ('J99','J00','J95')
+       AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART <> 'J1804'
+       AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN
+''', 'Fechas_Faltantes','',Fechas_Faltantes)
+
+if Real_Xdock_Imp_L1.empty == False:         
+        
+    #Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1[Real_Xdock_Imp_L1['CLUGENTR']!='9990']
+    Real_Xdock_Imp_L1['PALLET LABEL'] = np.where((Real_Xdock_Imp_L1['CTIPTRAB'] == 'DI') & (Real_Xdock_Imp_L1['CFUNCION'] == 'GEN_PAL') , 'PALLET LABEL', 'XD_IMPORTADO' )
+    Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1[Real_Xdock_Imp_L1['PALLET LABEL'] != 'PALLET LABEL' ]
+
+    Real_Xdock_Imp_L1_['CD'] = 'LOF1'
+    Real_Xdock_Imp_L1_['TIPO'] = 'Real'
+    Real_Xdock_Imp_L1_['FLUJO'] = '4. Xdock'
+    Real_Xdock_Imp_L1_['PROCESO'] = '4.a. XDock Importado'
+    
+    Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1_.groupby(['CD','TIPO','FLUJO','PROCESO','FECHA'])['CANTIDAD'].sum().reset_index()
+    Real_Xdock_Imp_L1_['ORIGEN'] = 'Sistema'
+    Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1_[['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN']]    
+
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    Real_Xdock_Imp_L1_ = pd.DataFrame(columns=columnas)
+
+Real_XD_Nac_LOF1_=BI.QxBI3('sab',
+'''
+SELECT 
+    SUM(DECODE(SUBSTR(F069LALB.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F069LALB.QCONRECI) CANTIDAD,
+    TRUNC(F068CALB.FDOCUMEN) FECHA
+FROM
+    F069LALB 
+    LEFT JOIN F068CALB ON F068CALB.CALBARAN = F069LALB.CALBARAN AND 
+        F068CALB.CALMACEN = F069LALB.CALMACEN AND 
+        F068CALB.CCNSGENT = F069LALB.CCNSGENT AND 
+        F068CALB.CEMPRESA = F069LALB.CEMPRESA AND 
+        F068CALB.CTIPTRAB = F069LALB.CTIPTRAB AND 
+        F069LALB.CENTRADA = F068CALB.CENTRADA
+    LEFT JOIN F002ARTI ON F002ARTI.CEMPRESA = F069LALB.CEMPRESA AND 
+        F002ARTI.CCONSIGN = F069LALB.CCNSGENT AND 
+        F002ARTI.CREFEREN = F069LALB.CREFEREN
+    LEFT JOIN F053MENL ON 
+        F069LALB.CCNSGENT = F053MENL.CCNSGENT AND 
+        F069LALB.CEMPRESA = F053MENL.CEMPRESA AND 
+        F069LALB.CTIPTRAB = F053MENL.CTIPTRAB AND 
+        F069LALB.CENTRADA = F053MENL.CENTRADA AND 
+        F069LALB.CCONTLIN = F053MENL.CCONTLIN AND 
+        F069LALB.CREFEREN = F053MENL.CREFEREN
+    LEFT JOIN F002CURV C ON F069LALB.CREFEREN = C.CREFCURV
+WHERE 1 = 1
+    
+    AND F068CALB.CALMACEN IN ('944')
+    AND F068CALB.CENTRADA NOT LIKE 'BP%'
+    AND F002ARTI.DDEPARTA NOT IN ('J99','J95')
+    AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA NOT IN ('J1804')
+    AND (F068CALB.CENTRADA LIKE '%X%' OR F068CALB.CENTRADA LIKE 'N%')
+    AND F069LALB.CSITLALB = 'FI'
+    AND F053MENL.CLUGENTR NOT IN (9944, 2000, 9941, 9949, 1975, 9945, 9983)
+    AND TO_CHAR(F068CALB.FDOCUMEN,'YYYY-MM-DD') IN ''','Fechas_Faltantes','''
+GROUP BY
+    TRUNC(F068CALB.FDOCUMEN)''',Fechas_Faltantes)
+
+if Real_XD_Nac_LOF1_.empty == False:         
+        
+    Real_XD_Nac_LOF1_['CD'] = 'LOF1'
+    Real_XD_Nac_LOF1_['TIPO'] = 'Real'
+    Real_XD_Nac_LOF1_['FLUJO'] = '4. Xdock'
+    Real_XD_Nac_LOF1_['PROCESO'] = '4.b. Xdock Nacional'
+    Real_XD_Nac_LOF1_['ORIGEN'] = 'Sistema'
+    
+    Real_XD_Nac_LOF1 = Real_XD_Nac_LOF1_.reindex(columns=['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN'])
+   
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    Real_XD_Nac_LOF1 = pd.DataFrame(columns=columnas)
+
+Picking_LOF1 = BI.QxBI3('sab',
+'''
+SELECT 
+    'LOF1' CD,
+    'Real' TIPO,
+    '5. Picking' FLUJO,
+    CASE 
+    WHEN F057PEDC.XCLILUEN IN ('2000','9921','9941','9949','9983') THEN '5.b. Picking destino DVD'
+    WHEN F057PEDC.XCLILUEN NOT IN ('2000','9921','9941','9949','9983') AND F085LSUR.CALMACEN <> '912' THEN '5.a. Picking destino F5'
+    ELSE 'N/A'
+    END PROCESO, 
+    SUM(to_number(DECODE(SUBSTR(F085LSUR.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F085LSUR.QSURTIDA)) AS CANTIDAD,
+    TRUNC(F085LSUR.FPICKING) FECHA,
+    'Sistema' ORIGEN
+FROM F085LSUR
+    LEFT JOIN F057PEDC ON F085LSUR.CEMPRESA = F057PEDC.CEMPRESA 
+    AND F085LSUR.CTIPTRAB = F057PEDC.CTIPTRAB 
+    AND F085LSUR.CCNSGSAL = F057PEDC.CCNSGSAL 
+    AND F085LSUR.CNPEDIDO = F057PEDC.CNPEDIDO   
+    INNER JOIN F002ARTI ON F085LSUR.CCNSGSAL = F002ARTI.CCONSIGN 
+    AND F085LSUR.CEMPRESA = F002ARTI.CEMPRESA 
+    AND F085LSUR.CREFEREN = F002ARTI.CREFEREN 
+    LEFT JOIN F002CURV C ON F085LSUR.CREFEREN = C.CREFCURV
+WHERE 
+    F085LSUR.CTIPTRAB In ('S1','S2','S3','S4','R1','R2','R3','R4','S9','S8','SL','SM')        
+    AND F085LSUR.CZONALMA <> 'FXX'
+    AND F002ARTI.DDEPARTA NOT IN ('J18','J99')
+    AND F085LSUR.CALMACEN <> '912'
+    AND TO_CHAR(F085LSUR.FPICKING,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY     
+    CASE 
+    WHEN F057PEDC.XCLILUEN IN ('2000','9921','9941','9949','9983') THEN '5.b. Picking destino DVD'
+    WHEN F057PEDC.XCLILUEN NOT IN ('2000','9921','9941','9949','9983') AND F085LSUR.CALMACEN <> '912' THEN '5.a. Picking destino F5'
+    ELSE 'N/A'
+    END,
+    TRUNC(F085LSUR.FPICKING)''',Fechas_Faltantes)
+
+Planificacion_Picking_LOF1 = BI.QxBI2('sab',
+'''
+SELECT 
+    F057PEDC.CCENTDIS, 
+    F057PEDC.CTIPTRAB AS TIPO_TRABAJO,
+    F057PEDC.CNPEDIDO, 
+    F002ARTI.DDEPARTA AS LINEA,
+    F002ARTI.DDEPARTA||F002ARTI.DFAMILIA AS SUBLINEA, 
+    SUBSTR(F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART,1,7) AS CLASE, 
+    F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART AS SUBCLASE, 
+    DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.CREFEREN, F058PEDL.CREFEREN) AS CREFEREN, 
+    F058PEDL.CREFEREN AS SKU,
+    F002ARTI.DARTICUL,
+    F002ARTI.DMARCART,
+    F057PEDC.XCLILUEN, 
+    F057PEDC.XSITSALI,
+    F057PEDC.TOBSERVA, 
+    Trunc(F057PEDC.FENTRADA) , 
+    Trunc(F057PEDC.FPLANIFI) AS FECHA, 
+    F057PEDC.FESALIDA, 
+    DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QUNIPEDI AS QUNIPEDI,
+    DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QSISTOCK AS QSISTOCK,
+    (DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QANUASIG )
+    +(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QANULADA)
+    +(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QPEANULA) AS QTANULADA, 
+    (DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QUNIPEDI )
+    -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K',C.QUNIDADE, 1) * F058PEDL.QSISTOCK )
+    -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QANUASIG)
+    -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QANULADA)
+    -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QPEANULA) AS CANTIDAD,
+    DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QSURTIDA AS QTATENDIDA
+FROM F002ARTI, F057PEDC, F058PEDL,F002CURV C
+WHERE 
+    F058PEDL.CCENTDIS = F057PEDC.CCENTDIS
+    AND F058PEDL.CCNSGSAL = F057PEDC.CCNSGSAL
+    AND F058PEDL.CEMPRESA = F057PEDC.CEMPRESA
+    AND F058PEDL.CNPEDIDO = F057PEDC.CNPEDIDO
+    AND F058PEDL.CTIPTRAB = F057PEDC.CTIPTRAB
+    AND F058PEDL.FESALIDA = F057PEDC.FESALIDA
+    AND F002ARTI.CCONSIGN = F058PEDL.CCNSGSAL
+    AND F002ARTI.CEMPRESA = F058PEDL.CEMPRESA
+    AND F002ARTI.CREFEREN = F058PEDL.CREFEREN
+    AND F058PEDL.CREFEREN = C.CREFCURV(+)
+    AND F057PEDC.XSITSALI not in ('RE')
+    AND F002ARTI.DDEPARTA not in ('J99')
+    AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA not in ('J1804')
+    AND F057PEDC.CCENTDIS not in ('007')
+    AND (F057PEDC.CTIPTRAB In ('S1','S2','S3','S4','S6','S8','S9','R1','R2','R3','R4','SM'))
+         AND (F057PEDC.CEMPRESA='T1')
+         AND (F057PEDC.CCNSGSAL='1')
+         AND TO_CHAR(F057PEDC.FPLANIFI ,'YYYY-MM-DD') IN''', 'Fechas_Faltantes',Fechas_Faltantes)
+    
+
+if Planificacion_Picking_LOF1.empty == False:         
+        
+    R_Prlanif_Pickdvd_L1 = Planificacion_Picking_LOF1[Planificacion_Picking_LOF1['XCLILUEN'].isin(['2000','9983','9949','9941','9921'])]
+    R_Prlanif_Pickf5_L1 = Planificacion_Picking_LOF1[~(Planificacion_Picking_LOF1['XCLILUEN'].isin(['2000','9983','9949','9941','9921']))]
+    R_Prlanif_Pickdvd_L1 = R_Prlanif_Pickdvd_L1.groupby('FECHA')['CANTIDAD'].sum().reset_index()
+    R_Prlanif_Pickf5_L1 = R_Prlanif_Pickf5_L1.groupby('FECHA')['CANTIDAD'].sum().reset_index()
+
+    R_Prlanif_Pickdvd_L1['CD'] = 'LOF1'
+    R_Prlanif_Pickdvd_L1['TIPO'] = 'Planificacion'
+    R_Prlanif_Pickdvd_L1['FLUJO'] = '5. Picking'
+    R_Prlanif_Pickdvd_L1['PROCESO'] = '5.e. Planificacion DVD'
+    R_Prlanif_Pickdvd_L1['ORIGEN'] = 'Sistema'
+    
+    R_Prlanif_Pickf5_L1['CD'] = 'LOF1'
+    R_Prlanif_Pickf5_L1['TIPO'] = 'Planificacion'
+    R_Prlanif_Pickf5_L1['FLUJO'] = '5. Picking'
+    R_Prlanif_Pickf5_L1['PROCESO'] = '5.d. Planificacion F5'
+    R_Prlanif_Pickf5_L1['ORIGEN'] = 'Sistema'
+
+    R_Prlanif_Pickdvd_L1 = R_Prlanif_Pickdvd_L1[['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN']]
+    R_Prlanif_Pickf5_L1 = R_Prlanif_Pickf5_L1[['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN']]
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    R_Prlanif_Pickf5_L1 = pd.DataFrame(columns=columnas)
+    R_Prlanif_Pickdvd_L1 = pd.DataFrame(columns=columnas)
+
+Carga_LOF1_ = BI.QxBI3('sab',
+'''
+Select
+    'LOF1' CD,
+    'Real' TIPO,
+    '6. Carga' FLUJO,
+    CASE 
+    WHEN F132HIST.CLUGENTR IN ('9990') AND F132HIST.CALMACEN IN ('912','944') THEN '6.b. Carga destino LOF2'
+    WHEN F132HIST.CLUGENTR NOT IN ('9990') THEN '6.a. Carga destino Tiendas'
+    ELSE 'NA'
+    END PROCESO,
+    SUM(Decode(SubStr(F132HIST.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F132HIST.QCANTIDA) CANTIDAD,
+    Trunc(F132HIST.FCREAREG) FECHA,
+    'Sistema' ORIGEN
+FROM F132HIST
+    INNER JOIN F037LENT ON F132HIST.CCONSIGN = F037LENT.CCONSIGN And F132HIST.CEMPRESA = F037LENT.CEMPRESA
+    And F132HIST.CLUGENTR = F037LENT.CLUGENTR
+    INNER JOIN F002ARTI ON F132HIST.CCONSIGN = F002ARTI.CCONSIGN And F132HIST.CEMPRESA = F002ARTI.CEMPRESA
+    And F132HIST.CREFEREN = F002ARTI.CREFEREN
+    LEFT JOIN F002CURV C ON F132HIST.CREFEREN = C.CREFCURV
+WHERE 
+    F132HIST.CNPEDIDO Not Like '12%' 
+    And F132HIST.CLUGENTR Not Like 'S%' 
+    And F132HIST.CEMPRESA = 'T1' 
+    And F132HIST.CFUNCION = 'RF-23' 
+    AND F002ARTI.DDEPARTA <> 'J99'
+    AND F002ARTI.DDEPARTA || F002ARTI.DFAMILIA <> 'J1804'
+    --AND F132HIST.CALMACEN IN ('200','912','914','944','945')
+    AND F132HIST.CLUGENTR NOT IN --('2000','9944','1170','1177','3220','1284')
+    ('2501','1975','9710','9713','7000','9944','9909','9912','9913','3628','2000','2004')
+    AND CASE 
+    WHEN F132HIST.CLUGENTR IN ('9990') AND F132HIST.CALMACEN IN ('912','944') THEN '6.b. Carga destino LOF2' 
+    WHEN F132HIST.CLUGENTR NOT IN ('9990') THEN '6.a. Carga destino Tiendas'
+    ELSE 'NA'
+    END <> 'NA'
+    AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY 
+    Trunc(F132HIST.FCREAREG),
+    CASE 
+    WHEN F132HIST.CLUGENTR IN ('9990') AND F132HIST.CALMACEN IN ('912','944') THEN '6.b. Carga destino LOF2'
+    WHEN F132HIST.CLUGENTR NOT IN ('9990') THEN '6.a. Carga destino Tiendas'
+    ELSE 'NA'
+    END''',Fechas_Faltantes)
+
+c_Reales_L1 = pd.concat([Real_Trf_LOF1_,Real_Recep_Nac_LOF1_,Real_Proc_Imp_LOF1,Guardado_LOF1,Real_Xdock_Imp_L1_,
+                         Real_XD_Nac_LOF1,Picking_LOF1,R_Prlanif_Pickdvd_L1,R_Prlanif_Pickf5_L1,Carga_LOF1_])
+
+Recepcion_importado_lof2_=BI.QxBI3('wmos',
+"""
+select 
+      asn.tc_asn_id,
+      asn_detail.TC_PURCHASE_ORDERS_ID,
+      asn.appointment_id,
+      asn.REF_FIELD_8,
+      pck_case.quantity case_quantity,
+      lpn.tc_lpn_id,
+      lpn.lpn_id,
+      trunc(lpn.rcvd_dttm) FECHA,
+      item_cbo.item_name, item_cbo.ref_field1,
+      item_cbo.ref_field2,item_cbo.ref_field3,item_cbo.ref_field4,item_cbo.ref_field5,item_cbo.item_season,
+      CASE when substr(item_cbo.item_name,1,1)='K' then
+      sum(item_bom_detail_wms.quantity*lpn_detail.received_qty) 
+      ELSE lpn_detail.received_qty END CANTIDAD,
+      --item_bom_detail_wms.quantity QTY,
+      lpn_detail.received_qty,
+      SUM(lpn_detail.received_qty) AS SUMA_MULTI,
+      case
+      when LPN_G.cntr_nbr is null and lpn_o.lpn_id is not null then 'XD'
+      when LPN_G.cntr_nbr is not null then 'G'
+      else 'No info'
+      end DEST,
+      lpn_o.D_facility_alias_id
+from
+      asn
+      left join asn_detail on ASN.ASN_ID = asn_detail.ASN_ID
+      left join lpn_detail on asn_detail.asn_detail_id=lpn_detail.asn_dtl_id
+      left join lpn on lpn.lpn_id=lpn_detail.lpn_id
+      left join item_bom_header_wms on item_bom_header_wms.item_id=lpn_detail.item_id
+      left join item_bom_detail_wms on (item_bom_header_wms.group_code=item_bom_detail_wms.group_code and ITEM_BOM_DETAIL_WMS.mark_for_deletion = 0)
+      left join item_cbo on item_cbo.item_id=lpn.item_id
+      left join item_package_cbo pck_case on pck_case.item_id = item_cbo.item_id and pck_case.mark_for_deletion = '0' and pck_case.package_UOM_ID = '45'            
+      left join lpn lpn_o on lpn_o.tc_lpn_id=lpn.tc_lpn_id and lpn_o.inbound_outbound_indicator='O'
+      left join 
+      (select distinct
+               prod_trkg_tran.cntr_nbr
+       from 
+               prod_trkg_tran
+               inner join LOCN_HDR on LOCN_HDR.locn_id = prod_trkg_tran.to_locn
+       where
+               LOCN_HDR.AREA IN ('RCK', 'MZ', 'GT', 'CON', 'MME', 'TEM')
+               and prod_trkg_tran.menu_optn_name <> 'Generate Replenishment') LPN_G ON LPN.TC_LPN_ID = LPN_G.cntr_nbr
+WHERE substr(asn.tc_asn_id,1,3) in ('XPC','SKU')
+      AND TO_CHAR(lpn.rcvd_dttm,'YYYY-MM-DD') IN""",'Fechas_Faltantes',"""
+GROUP BY 
+      asn.tc_asn_id,
+      asn_detail.TC_PURCHASE_ORDERS_ID,
+      asn.REF_FIELD_8,
+      pck_case.quantity,
+      lpn.tc_lpn_id,
+      lpn.lpn_id,
+      item_cbo.item_name, item_cbo.ref_field1,
+      item_cbo.ref_field2,item_cbo.ref_field3,item_cbo.ref_field4,item_cbo.ref_field5,
+      lpn_detail.received_qty, LPN_G.cntr_nbr, lpn_o.lpn_id, lpn_o.D_facility_alias_id,
+      asn.appointment_id,item_cbo.item_season,
+      trunc(lpn.rcvd_dttm)""",Fechas_Faltantes)
+
+if Recepcion_importado_lof2_.empty == False:         
+        
+    Recepcion_importado_lof2 = Recepcion_importado_lof2_.groupby('FECHA')['CANTIDAD'].sum().reset_index()
+    
+    Recepcion_importado_lof2['CD'] = 'LOF2'
+    Recepcion_importado_lof2['TIPO'] = 'Real'
+    Recepcion_importado_lof2['FLUJO'] = '1. Recepcion'
+    Recepcion_importado_lof2['PROCESO'] = '1.a. Recepcion Importado'
+    Recepcion_importado_lof2['ORIGEN'] = 'Sistema'
+    Recepcion_importado_lof2 = Recepcion_importado_lof2.reindex(columns=['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN'])
+     
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    Recepcion_importado_lof2 = pd.DataFrame(columns=columnas)        
+
+RN_TRF_LOF2 = BI.QxBI3('wmos',
+'''
+SELECT
+    'LOF2' CD,
+    'Real' TIPO,
+    '1. Recepcion' FLUJO,     
+    CASE 
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'NAC' THEN '1.g. Recepcion Nacional'
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'TRF' AND ASN.ORIGIN_FACILITY_ALIAS_ID = '9940' THEN '1.e. Recepcion desde 940'
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'TRF' AND ASN.ORIGIN_FACILITY_ALIAS_ID NOT IN ('9943','9940') THEN '1.d. Recepcion Transferencia'
+    ELSE 'N/A'
+    END PROCESO,
+    SUM(CASE WHEN Q2.PREPACK_QTY <> 0 THEN (LPN_DETAIL.RECEIVED_QTY * Q2.PREPACK_QTY)
+    ELSE LPN_DETAIL.RECEIVED_QTY
+    END) as CANTIDAD,
+    trunc(LPN.RCVD_DTTM) FECHA,
+    'Sistema' ORIGEN
+FROM 
+    ASN
+    LEFT JOIN ASN_STATUS ON ASN.ASN_STATUS = ASN_STATUS.ASN_STATUS
+    INNER JOIN LPN ON ASN.ASN_ID = LPN.ASN_ID
+    INNER JOIN LPN_DETAIL ON LPN.LPN_ID = LPN_DETAIL.LPN_ID
+    LEFT JOIN (SELECT ITEM_CBO.ITEM_NAME SKU,
+                    SUM(ITEM_BOM_DETAIL_WMS.QUANTITY) PREPACK_QTY
+               FROM ITEM_CBO
+                    INNER JOIN ITEM_BOM_HEADER_WMS ON ITEM_CBO.ITEM_ID = ITEM_BOM_HEADER_WMS.ITEM_ID
+                    INNER JOIN ITEM_BOM_DETAIL_WMS ON ITEM_BOM_HEADER_WMS.GROUP_CODE = ITEM_BOM_DETAIL_WMS.GROUP_CODE
+                    INNER JOIN ITEM_CBO ITEM_CBO2 ON ITEM_BOM_DETAIL_WMS.ITEM_ID = ITEM_CBO2.ITEM_ID
+               GROUP BY ITEM_CBO.ITEM_NAME) Q2
+    ON LPN.ITEM_NAME = Q2.SKU
+WHERE  
+    ASN.ASN_STATUS IN ('30','40')
+    AND SUBSTR(ASN.TC_ASN_ID, 1, 3) IN ('NAC','TRF')
+    AND CASE 
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'NAC' THEN '1.g. Recepcion Nacional'
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'TRF' AND ASN.ORIGIN_FACILITY_ALIAS_ID = '9940' THEN '1.e. Recepcion desde 940'
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'TRF' AND ASN.ORIGIN_FACILITY_ALIAS_ID NOT IN ('9943','9940') THEN '1.d. Recepcion Transferencia'
+    ELSE 'N/A'
+    END <> 'N/A'
+    AND TO_CHAR(LPN.RCVD_DTTM,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+GROUP BY 
+    CASE 
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'NAC' THEN '1.g. Recepcion Nacional'
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'TRF' AND ASN.ORIGIN_FACILITY_ALIAS_ID = '9940' THEN '1.e. Recepcion desde 940'
+    WHEN SUBSTR(ASN.TC_ASN_ID, 1, 3) = 'TRF' AND ASN.ORIGIN_FACILITY_ALIAS_ID NOT IN ('9943','9940') THEN '1.d. Recepcion Transferencia'
+    ELSE 'N/A'
+    END,
+    trunc(LPN.RCVD_DTTM)''',Fechas_Faltantes)
+
+
+XD_Nacional_LOF2_= BI.QxBI3('wmos',
+'''
+SELECT
+      rec.area,
+      '990' almacen,
+      CASE when LPN_FACILITY_STATUS = '95' AND area = 'NAC' then 'Xdock' 
+      else ''
+      end XD,
+      rec.ref_field2 JERARQUIA,
+      trunc(rec.fecha) FECHA,
+      SUM(rec.qty) AS CANTIDAD
+FROM
+      (SELECT asn.tc_asn_id,
+              substr(asn.tc_asn_id, 1, 3) area,
+              asn.asn_id,
+              asn_status.description,
+              item_cbo.ref_field2,
+              lpn.tc_lpn_id,
+              LPN.LPN_FACILITY_STATUS,   
+              lpn_detail.item_name sku,
+              lpn_detail.shipped_qty shipped_qty,
+              lpn_detail.received_qty received_qty,
+              q2.prepack_qty qty_prepack,
+              CASE
+              WHEN q2.prepack_qty <> 0 THEN (lpn_detail.received_qty * q2.prepack_qty)
+              ELSE lpn_detail.received_qty
+              END qty,
+              lpn.rcvd_dttm fecha,
+              to_char(lpn.rcvd_dttm, 'DD-MM-YYYY HH24:MI:SS') rcv_dttm,
+              trunc(lpn.rcvd_dttm) dia,
+              to_char(lpn.rcvd_dttm, 'HH24') hora,
+              CASE
+              WHEN to_number(to_char(lpn.rcvd_dttm, 'HH24')) >= 0 AND to_number(to_char(lpn.rcvd_dttm, 'HH24')) < 8 THEN '8AM'
+              WHEN to_number(to_char(lpn.rcvd_dttm, 'HH24')) >= 8 AND to_number(to_char(lpn.rcvd_dttm, 'HH24')) < 12 THEN '12PM'
+              WHEN to_number(to_char(lpn.rcvd_dttm, 'HH24')) >= 12 AND to_number(to_char(lpn.rcvd_dttm, 'HH24')) < 16 THEN '16PM'
+              ELSE '23PM'
+              END rango
+       FROM asn,
+            asn_status,
+            item_cbo,
+            lpn,
+            lpn_detail,
+            (SELECT
+                  item_cbo.item_name sku,
+                  SUM(item_bom_detail_wms.quantity) prepack_qty
+             FROM
+                  item_cbo
+                  INNER JOIN item_bom_header_wms ON item_cbo.item_id = item_bom_header_wms.item_id
+                  INNER JOIN item_bom_detail_wms ON item_bom_header_wms.group_code = item_bom_detail_wms.group_code
+                  INNER JOIN item_cbo item_cbo2 ON item_bom_detail_wms.item_id = item_cbo2.item_id
+                  GROUP BY
+                  item_cbo.item_name
+            ) q2
+       WHERE
+            to_char(lpn.rcvd_dttm,'YYYY-MM-DD') IN ''','Fechas_Faltantes','''
+            AND lpn.item_name = q2.sku (+)
+            AND asn.asn_status = asn_status.asn_status (+)
+            AND asn.asn_status IN ('30','40')
+            AND asn.asn_id = lpn.asn_id
+            AND lpn.lpn_id = lpn_detail.lpn_id
+            AND item_cbo.item_name = lpn_detail.item_name) rec
+group by rec.area,
+         rec.ref_field2,
+         CASE when LPN_FACILITY_STATUS = '95' AND area = 'NAC' then 'Xdock' 
+         else ''
+         end,
+         trunc(rec.fecha)
+         ''',Fechas_Faltantes)
+
+
+if XD_Nacional_LOF2_.empty == False:         
+        
+    XD_Nacional_LOF2=XD_Nacional_LOF2_[XD_Nacional_LOF2_['XD']=='Xdock']
+    XD_Nacional_LOF2=XD_Nacional_LOF2.groupby(['XD','FECHA'])['CANTIDAD'].sum().reset_index()
+    
+    XD_Nacional_LOF2['CD'] = 'LOF2'
+    XD_Nacional_LOF2['TIPO'] = 'Real'
+    XD_Nacional_LOF2['FLUJO'] = '3. Xdock Nacional'
+    XD_Nacional_LOF2['PROCESO'] = '3.a. XDock Nacional'
+    XD_Nacional_LOF2['ORIGEN'] = 'Sistema'
+    XD_Nacional_LOF2=XD_Nacional_LOF2.drop(['XD'], axis=1)
+    XD_Nacional_LOF2=XD_Nacional_LOF2.reindex(columns=['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN'])
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    XD_Nacional_LOF2 = pd.DataFrame(columns=columnas)        
+
+Guardado_LOF2_1 = BI.QxBI3('wmos',
+'''
+SELECT 
+    Guardado.TIPO as Proceso,
+    'Real Guardado' Valor,
+    'Guardado' Cruce,
+    Guardado.FECHA,
+    SUM(Guardado.Cantidad) as CANTIDAD
+FROM
+    (SELECT 
+        TRUNC(PROD_TRKG_TRAN.END_DATE) Fecha,
+        case when PREPACK.PREPACK_QTY <> 0 THEN (PROD_TRKG_TRAN.NBR_UNITS * PREPACK.PREPACK_QTY)
+        ELSE PROD_TRKG_TRAN.NBR_UNITS END Cantidad,
+        'Guardado' TIPO
+        --'RCK' AREA
+    FROM PROD_TRKG_TRAN
+        INNER JOIN LOCN_HDR LOC1
+        ON PROD_TRKG_TRAN.FROM_LOCN = LOC1.LOCN_ID
+        AND LOC1.AREA = 'DZI'
+        INNER JOIN LOCN_HDR LOC2
+        ON PROD_TRKG_TRAN.TO_LOCN = LOC2.LOCN_ID
+        AND LOC2.AREA = 'RCK'
+        INNER JOIN ITEM_CBO 
+        ON PROD_TRKG_TRAN.ITEM_ID = ITEM_CBO.ITEM_ID
+        LEFT JOIN (
+                  SELECT ITEM_CBO.ITEM_NAME SKU,
+                      SUM(ITEM_BOM_DETAIL_WMS.QUANTITY) PREPACK_QTY
+                  FROM ITEM_CBO
+                      INNER JOIN ITEM_BOM_HEADER_WMS ON ITEM_CBO.ITEM_ID = ITEM_BOM_HEADER_WMS.ITEM_ID
+                      INNER JOIN ITEM_BOM_DETAIL_WMS ON ITEM_BOM_HEADER_WMS.GROUP_CODE = ITEM_BOM_DETAIL_WMS.GROUP_CODE
+                      INNER JOIN ITEM_CBO ITEM_CBO2 ON ITEM_BOM_DETAIL_WMS.ITEM_ID = ITEM_CBO2.ITEM_ID
+                  GROUP BY ITEM_CBO.ITEM_NAME) PREPACK
+        ON ITEM_CBO.ITEM_NAME = PREPACK.SKU
+    WHERE 
+        TO_CHAR(PROD_TRKG_TRAN.END_DATE, 'YYYY-MM-DD') IN''','Fechas_Faltantes',
+        ''') Guardado
+        GROUP BY 
+        Guardado.TIPO,
+        Guardado.Fecha''',Fechas_Faltantes)
+        
+
+Guardado_LOF2_2 = BI.QxBI3('wmos',
+'''
+SELECT 
+    Guardado.TIPO as Proceso,
+    'Real Guardado' Valor,
+    'Guardado' Cruce,
+    Guardado.FECHA,
+    SUM(Guardado.Cantidad) as CANTIDAD
+FROM
+    (   
+    SELECT 
+         TRUNC(LPN.LAST_UPDATED_DTTM) Fecha,
+         case when PREPACK.PREPACK_QTY <> 0 THEN (LPN_DETAIL.RECEIVED_QTY * PREPACK.PREPACK_QTY)
+         ELSE LPN_DETAIL.RECEIVED_QTY END Cantidad,
+         case when TASK_HDR.TASK_DESC is null then 'Guardado'
+         else 'Replenishment' END TIPO
+    FROM LPN
+         INNER JOIN LPN_DETAIL ON LPN.LPN_ID = LPN_DETAIL.LPN_ID
+         INNER JOIN LOCN_HDR L1 ON LPN.CURR_SUB_LOCN_ID = L1.LOCN_ID
+         INNER JOIN ASN ON LPN.ASN_ID = ASN.ASN_ID
+         INNER JOIN ITEM_CBO ON LPN_DETAIL.ITEM_ID = ITEM_CBO.ITEM_ID
+         INNER JOIN LPN_FACILITY_STATUS ON LPN.LPN_FACILITY_STATUS = LPN_FACILITY_STATUS.LPN_FACILITY_STATUS
+         INNER JOIN TASK_DTL ON LPN.TC_LPN_ID = TASK_DTL.CNTR_NBR AND TASK_DTL.STAT_CODE NOT IN ('99')
+         INNER JOIN TASK_HDR ON TASK_DTL.TASK_ID = TASK_HDR.TASK_ID AND TASK_HDR.INVN_NEED_TYPE = 1
+         LEFT JOIN (SELECT ITEM_CBO.ITEM_NAME SKU,
+                        SUM(ITEM_BOM_DETAIL_WMS.QUANTITY) PREPACK_QTY
+                    FROM ITEM_CBO
+                        INNER JOIN ITEM_BOM_HEADER_WMS ON ITEM_CBO.ITEM_ID = ITEM_BOM_HEADER_WMS.ITEM_ID
+                        INNER JOIN ITEM_BOM_DETAIL_WMS ON ITEM_BOM_HEADER_WMS.GROUP_CODE = ITEM_BOM_DETAIL_WMS.GROUP_CODE
+                        INNER JOIN ITEM_CBO ITEM_CBO2 ON ITEM_BOM_DETAIL_WMS.ITEM_ID = ITEM_CBO2.ITEM_ID
+                    GROUP BY ITEM_CBO.ITEM_NAME) PREPACK ON LPN_DETAIL.ITEM_NAME = PREPACK.SKU
+    WHERE 
+         LPN.LPN_FACILITY_STATUS = '96'
+         AND LPN.LPN_TYPE IN ('1', '2')
+         AND L1.AREA IN ('GT','MZ')
+         AND LPN.INBOUND_OUTBOUND_INDICATOR = 'I'
+         AND TASK_HDR.TASK_DESC IS NULL
+         AND LPN_FACILITY_STATUS.INBOUND_OUTBOUND_INDICATOR = 'I'
+         AND TO_CHAR(LPN.LAST_UPDATED_DTTM, 'YYYY-MM-DD') IN ''','Fechas_Faltantes',''') Guardado
+    
+    GROUP BY 
+        Guardado.TIPO,
+        Guardado.Fecha''',Fechas_Faltantes)
+        
+Guardado_LOF2_3 = BI.QxBI3('wmos',
+'''
+SELECT 
+    Guardado.TIPO as Proceso,
+    'Real Guardado' Valor,
+    'Guardado' Cruce,
+    Guardado.FECHA,
+    SUM(Guardado.Cantidad) as CANTIDAD
+FROM
+    (SELECT  
+         TRUNC(PTT.MOD_DATE_TIME)  Fecha, 
+         CASE WHEN PREP1.SKU IS NULL THEN LD.SIZE_VALUE 
+         ELSE (PREP1.PREPACK * LD.SIZE_VALUE) END CANTIDAD,
+         'Guardado' TIPO
+    FROM PROD_TRKG_TRAN PTT 
+         INNER JOIN LOCN_HDR LH1 ON PTT.FROM_LOCN  = LH1.LOCN_ID 
+         INNER JOIN LOCN_HDR LH2 ON  PTT.TO_LOCN = LH2.LOCN_ID
+         INNER JOIN LPN L ON PTT.CNTR_NBR = L.TC_LPN_ID 
+         INNER JOIN LPN_DETAIL LD ON L.LPN_ID = LD.LPN_ID
+         INNER JOIN ITEM_CBO IC ON IC.ITEM_ID = LD.ITEM_ID 
+         LEFT JOIN (
+                  SELECT 
+                      ITEM_CBO.ITEM_NAME SKU,
+                      SUM(ITEM_BOM_DETAIL_WMS.QUANTITY) PREPACK
+                  FROM ITEM_CBO
+                      INNER JOIN ITEM_BOM_HEADER_WMS ON ITEM_CBO.ITEM_ID = ITEM_BOM_HEADER_WMS.ITEM_ID
+                      INNER JOIN ITEM_BOM_DETAIL_WMS ON ITEM_BOM_HEADER_WMS.GROUP_CODE = ITEM_BOM_DETAIL_WMS.GROUP_CODE
+                      INNER JOIN ITEM_CBO ITEM_CBO2 ON ITEM_BOM_DETAIL_WMS.ITEM_ID = ITEM_CBO2.ITEM_ID
+                  GROUP BY ITEM_CBO.ITEM_NAME) PREP1 
+         ON PREP1.SKU = IC.ITEM_NAME 
+    WHERE 
+         PTT.MENU_OPTN_NAME IN ('L2-PtwyFT','L2-PtwyTEMP') 
+         AND TO_CHAR(PTT.MOD_DATE_TIME, 'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+    ) Guardado
+GROUP BY 
+    Guardado.TIPO,
+    Guardado.Fecha
+''', Fechas_Faltantes)
+
+Guardado_LOF2 = pd.concat([Guardado_LOF2_1, Guardado_LOF2_2, Guardado_LOF2_3]).\
+    groupby(by = ['PROCESO','VALOR','CRUCE','FECHA'], as_index = False).agg(CANTIDAD = pd.NamedAgg('CANTIDAD', 'sum'))  
+
+
+if Guardado_LOF2.empty == False:         
+        
+    Guardado_LOF2['CD'] = 'LOF2'
+    Guardado_LOF2['TIPO'] = 'Real'
+    Guardado_LOF2['FLUJO'] = '2. Almacenamiento'
+    Guardado_LOF2['PROCESO'] = '2.a. Guardado Total'
+    Guardado_LOF2['ORIGEN'] = 'Sistema'
+    
+    Guardado_LOF2=Guardado_LOF2.reindex(columns=['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN'])
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    Guardado_LOF2 = pd.DataFrame(columns=columnas)         
+
+Picking_LOF2_ = BI.QxBI3('wmos',
+'''
+SELECT 
+    'LOF2' CD,
+    'Real' TIPO,
+    '4. Picking' FLUJO, 
+    '4.a. Picking destino F5' PROCESO,
+    SUM(CASE WHEN PREPACK.PREPACK_QTY <> 0 THEN (TASK_DTL.QTY_PULLD * PREPACK.PREPACK_QTY) ELSE TASK_DTL.QTY_PULLD
+    END) CANTIDAD,
+    trunc(TASK_DTL.MOD_DATE_TIME) FECHA,
+    'Sistema' ORIGEN
+FROM TASK_HDR
+    INNER JOIN TASK_DTL ON TASK_HDR.TASK_ID = TASK_DTL.TASK_ID
+    INNER JOIN LOCN_HDR ON LOCN_HDR.LOCN_ID = TASK_DTL.PULL_LOCN_ID 
+    INNER JOIN LPN L ON TASK_DTL.CARTON_NBR = L.TC_LPN_ID AND TASK_DTL.TASK_GENRTN_REF_NBR = L.WAVE_NBR
+    INNER JOIN ITEM_CBO ON TASK_DTL.ITEM_ID = ITEM_CBO.ITEM_ID
+    LEFT JOIN (SELECT ITEM_CBO.ITEM_NAME SKU,
+                   ITEM_CBO.ITEM_ID,
+                   ITEM_BOM_DETAIL_WMS.GROUP_CODE,
+                   SUM(ITEM_BOM_DETAIL_WMS.QUANTITY) PREPACK_QTY
+               FROM ITEM_CBO
+                   INNER JOIN ITEM_BOM_HEADER_WMS ON ITEM_CBO.ITEM_ID = ITEM_BOM_HEADER_WMS.ITEM_ID
+                   INNER JOIN ITEM_BOM_DETAIL_WMS ON ITEM_BOM_HEADER_WMS.GROUP_CODE = ITEM_BOM_DETAIL_WMS.GROUP_CODE
+                   INNER JOIN ITEM_CBO ITEM_CBO2 ON ITEM_BOM_DETAIL_WMS.ITEM_ID = ITEM_CBO2.ITEM_ID
+               GROUP BY ITEM_CBO.ITEM_NAME, ITEM_CBO.ITEM_ID, ITEM_BOM_DETAIL_WMS.GROUP_CODE) PREPACK ON ITEM_CBO.ITEM_NAME = PREPACK.SKU
+WHERE
+    TASK_DTL.STAT_CODE NOT IN ('99')
+    AND TASK_HDR.INVN_NEED_TYPE In ('2','50')
+    AND l.INBOUND_OUTBOUND_INDICATOR = ('O')
+    AND l.lpn_facility_status in (15,20,90)
+    AND TO_CHAR(TASK_DTL.MOD_DATE_TIME,'YYYY-MM-DD') IN ''','Fechas_Faltantes',''' 
+GROUP BY 
+    trunc(TASK_DTL.MOD_DATE_TIME)''',Fechas_Faltantes)
+
+
+Picking_Planificación_LOF2_ = BI.QxBI3('wmos',
+'''
+SELECT 
+    'LOF2' CD,
+    'Real' TIPO,
+    '4. Picking' FLUJO, 
+    '4.d. Picking Planificacion' PROCESO,
+    SUM(CASE
+        WHEN substr(ITEMS_for_ORDER_LINE_ITEM.ITEM_NAME,1,1) = 'K' THEN ORDER_LINE_ITEM.ORDER_QTY*BASE.QUANTITY
+        ELSE ORDER_LINE_ITEM.ORDER_QTY
+        END) CANTIDAD,
+    TRUNC(ORDERS_SRL.PICKUP_START_DTTM) FECHA,
+    'Sistema' ORIGEN
+FROM
+    ITEM_FACILITY_MAPPING_WMS ITEM_FACILITY_MAPPING_WMS
+    INNER JOIN ITEM_CBO ITEMS_for_ORDER_LINE_ITEM ON ITEM_FACILITY_MAPPING_WMS.ITEM_ID = ITEMS_for_ORDER_LINE_ITEM.ITEM_ID
+    INNER JOIN ORDER_LINE_ITEM ORDER_LINE_ITEM ON ORDER_LINE_ITEM.ITEM_ID = ITEMS_for_ORDER_LINE_ITEM.ITEM_ID
+    INNER JOIN ORDERS ORDERS_SRL ON ORDER_LINE_ITEM.ORDER_ID = ORDERS_SRL.ORDER_ID
+    INNER JOIN DO_STATUS DO_STATUS_SRL ON ORDERS_SRL.DO_STATUS = DO_STATUS_SRL.ORDER_STATUS
+    LEFT OUTER JOIN DO_TYPE DO_TYPE_SRL ON ORDERS_SRL.DO_TYPE = DO_TYPE_SRL.DO_TYPE
+    LEFT OUTER JOIN FACILITY T18
+    INNER JOIN FACILITY_ALIAS T19 ON T18.FACILITY_ID = T19.FACILITY_ID ON ORDERS_SRL.D_FACILITY_ID = T18.FACILITY_ID
+    FULL OUTER JOIN ASN ASN
+    INNER JOIN ASN_STATUS ASN_STATUS ON ASN.ASN_STATUS = ASN_STATUS.ASN_STATUS ON ORDER_LINE_ITEM.ALLOCATION_SOURCE_ID = ASN.TC_ASN_ID 
+    LEFT JOIN SHIP_WAVE_PARM SHIP_WAVE_PARM_ORDER_LINE ON SHIP_WAVE_PARM_ORDER_LINE.SHIP_WAVE_NBR = ORDER_LINE_ITEM.WAVE_NBR
+    LEFT JOIN (SELECT 
+                    ITEM_CBO.ITEM_NAME GROUP_CODE,
+                    SUM(ITEM_BOM_DETAIL_WMS.QUANTITY) QUANTITY
+               FROM 
+                    ITEM_CBO
+                    INNER JOIN ITEM_BOM_HEADER_WMS ON ITEM_CBO.ITEM_ID = ITEM_BOM_HEADER_WMS.ITEM_ID
+                    INNER JOIN ITEM_BOM_DETAIL_WMS ON ITEM_BOM_HEADER_WMS.GROUP_CODE = ITEM_BOM_DETAIL_WMS.GROUP_CODE
+                    INNER JOIN ITEM_CBO ITEM_CBO2 ON ITEM_BOM_DETAIL_WMS.ITEM_ID = ITEM_CBO2.ITEM_ID
+               GROUP BY ITEM_CBO.ITEM_NAME
+              ) Base ON ITEMS_for_ORDER_LINE_ITEM.ITEM_NAME = Base.GROUP_CODE
+WHERE   1 = 1
+    AND ORDERS_SRL.TC_ORDER_ID IS NOT NULL
+    AND ORDERS_SRL.IS_ORIGINAL_ORDER = '1'
+    AND ORDERS_SRL.ORDER_TYPE IN ('RA','EMP')
+    AND (ASN_STATUS.ASN_STATUS IN (40,30,60) OR (ASN_STATUS.ASN_STATUS IS NULL))
+    AND DO_TYPE_SRL.DO_TYPE = 10
+    AND TO_CHAR(ORDERS_SRL.PICKUP_START_DTTM,'YYYY-MM-DD') IN ''','Fechas_Faltantes','''
+GROUP BY      
+    TRUNC(ORDERS_SRL.PICKUP_START_DTTM)''',Fechas_Faltantes)
+
+
+Carga_Camión_LOF2_ = BI.QxBI3('srx',
+'''SELECT    
+    'LOF2' CD,    
+    'Real' TIPO,    '5. Carga' FLUJO,     
+    CASE         WHEN TRFHDREE.TRF_REC_LOC <> 85  THEN '5.a. Carga destino Tiendas'         
+    ELSE '5.b. Carga destino LOF1'    END PROCESO,    
+    sum(TRFDTLEE.TRF_QTY_SHIP) CANTIDAD,    
+    TRUNC(TRFHDREE.TRF_SHIP_DATE) FECHA,    
+    'Sistema' ORIGEN
+FROM    
+    ORGMSTEE ORGMSTEE,    
+    ORGMSTEE ORGMSTEE_1,    
+    PRDMSTEE PRDMSTEE,    
+    TRFDTLEE TRFDTLEE,    
+    TRFHDREE TRFHDREE,    
+    TRFSRCCD TRFSRCCD,     
+    PRDMDFVF PRDMDFVF,    
+    TRFSTSCD TRFSTSCD,    
+    TRFHGDEF,    
+    TRFHISEF
+WHERE     
+    TRFHDREE.TRF_NUMBER = TRFDTLEE.TRF_NUMBER    
+    AND TRFSTSCD.TRF_STATUS_ID = TRFHDREE.TRF_STATUS    
+    AND TRFHDREE.TRF_SOURCE_ID = TRFSRCCD.TRF_SOURCE_ID    
+    AND TRFHDREE.TRF_REC_LOC = ORGMSTEE.ORG_LVL_CHILD    
+    AND TRFDTLEE.PRD_LVL_CHILD = PRDMSTEE.PRD_LVL_CHILD    
+    AND TRFHDREE.TRF_SHIP_LOC = ORGMSTEE_1.ORG_LVL_CHILD    
+    AND PRDMDFVF.SKU = PRDMSTEE.PRD_LVL_NUMBER (+)    
+    --------------ESTADO DE TRANSFERENCIA---------------------------------------------    
+    AND TRFHDREE.TRF_STATUS IN ('4','5')  -- ESTADO TRF ENVIADA O RECIBIDA    
+    ----------------------------------------------------------------------------------      
+    AND TRFHDREE.NGUIA_DESPACHO=TRFHGDEF.NGUIA_DESPACHO(+)    
+    AND TRFHISEF.TRF_NUMBER(+)=TRFHDREE.TRF_NUMBER    
+    AND TRFHISEF.TRF_STATUS(+)=TRFHDREE.TRF_STATUS    
+    AND ORGMSTEE_1.ORG_LVL_NUMBER in ('9990') 
+    -- PONER ORIGEN    --  
+    AND TO_CHAR(TRFHDREE.TRF_SHIP_DATE,'YYYY-MM-DD') IN ''','Fechas_Faltantes',
+'''GROUP BY          
+TRUNC(TRFHDREE.TRF_SHIP_DATE),    
+CASE         WHEN TRFHDREE.TRF_REC_LOC <> 85 THEN '5.a. Carga destino Tiendas'         
+ELSE '5.b. Carga destino LOF1'    END''',Fechas_Faltantes)
+
+
+c_Reales_L2 = pd.concat([Recepcion_importado_lof2,RN_TRF_LOF2,XD_Nacional_LOF2,Guardado_LOF2,Picking_LOF2_,Picking_Planificación_LOF2_,Carga_Camión_LOF2_])
+
+
+Recep_GOH = BI.QxBI3('wmos_goh',
+'''
+SELECT
+    'LOF1' CD,
+    'Real' TIPO,
+    '7. GOH' FLUJO,
+    substr(b.tc_asn_id, 1, 4) tipo_tc_asn_id,
+    case 
+    when substr(b.tc_asn_id, 1, 4) = 'TRF5' then 'TRF'
+    WHEN substr(b.tc_asn_id, 1, 4) IN ('XPC5','GOHI') then 'Importado'
+    WHEN substr(b.tc_asn_id, 1, 4) = 'GOHN' then 'Nacional'
+    ELSE 'Revisar'
+    END Tipo_Recep,
+    SUM(a.ref_num3) push_or,
+    SUM(a.received_qty) recibido,
+    TRUNC(b.first_receipt_dttm) FECHA,
+    'Sistema' ORIGEN
+FROM
+    asn_detail a,
+    asn b,
+    asn_detail_status c,
+    item_cbo d,
+    ilm_appointments app
+WHERE
+    b.asn_id = a.asn_id
+    AND sku_name = item_name
+    AND a.asn_detail_status = c.asn_detail_status
+    AND b.appointment_id = app.tc_appointment_id (+)
+    AND TO_CHAR(b.first_receipt_dttm,'YYYY-MM-DD') IN ''','Fechas_Faltantes','''
+GROUP BY
+    substr(b.tc_asn_id, 1, 4),
+    case 
+    when substr(b.tc_asn_id, 1, 4) = 'TRF5' then 'TRF'
+    WHEN substr(b.tc_asn_id, 1, 4) IN ('XPC5','GOHI') then 'Importado'
+    WHEN substr(b.tc_asn_id, 1, 4) = 'GOHN' then 'Nacional'
+    ELSE 'Revisar'
+    END,
+    TRUNC(b.first_receipt_dttm)''',Fechas_Faltantes)
+
+Recep_GOH['PUSH_OR'] = Recep_GOH['PUSH_OR'].fillna(0)
+Recep_GOH['RECIBIDO'] = Recep_GOH['RECIBIDO'].fillna(0)
+
+for flujo in ['Nacional','Importado','TRF']:
+    df = Recep_GOH[Recep_GOH['TIPO_RECEP'] == flujo]
+    globals()[f'Cant_{flujo}'] = df['RECIBIDO'].sum()
+   
+XD = Recep_GOH[Recep_GOH['TIPO_RECEP'].isin(['Importado','Nacional'])]
+agenda = Recep_GOH[Recep_GOH['TIPO_RECEP'] == 'Nacional']
+trf_goh = Recep_GOH[Recep_GOH['TIPO_RECEP'] == 'TRF']
+pi_goh = Recep_GOH[Recep_GOH['TIPO_RECEP'] == 'Importado']
+
+if XD.empty == False:         
+    
+    RN_XD = XD.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['PUSH_OR'].sum().reset_index()
+    RN_XD = RN_XD.rename(columns={'PUSH_OR':'CANTIDAD'})
+    RN_XD['PROCESO'] = '5. Xdock Nacional'
+    RN_XD = RN_XD[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    RN_XD = pd.DataFrame(columns=columnas)      
+
+if agenda.empty == False:         
+    
+    RN_GOH_ = agenda.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['RECIBIDO'].sum().reset_index()
+    RN_GOH_ = RN_GOH_.rename(columns={'RECIBIDO':'CANTIDAD'})
+    RN_GOH_['PROCESO'] = '2. Recepcion Nacional'
+    RN_GOH_ = RN_GOH_[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    RN_GOH_ = pd.DataFrame(columns=columnas)  
+
+if trf_goh.empty == False:         
+    
+    TRF_GOH = trf_goh.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['RECIBIDO'].sum().reset_index()
+    TRF_GOH = TRF_GOH.rename(columns={'RECIBIDO':'CANTIDAD'})
+    TRF_GOH['PROCESO'] = '3. Recepcion Transferencias'
+    TRF_GOH = TRF_GOH[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    TRF_GOH = pd.DataFrame(columns=columnas)
+
+if pi_goh.empty == False:         
+    
+    PI_GOH_ = pi_goh.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['RECIBIDO'].sum().reset_index()
+    PI_GOH_ = PI_GOH_.rename(columns={'RECIBIDO':'CANTIDAD'})
+    PI_GOH_['PROCESO'] = '4. Proceso Importado'
+    PI_GOH_ = PI_GOH_[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    PI_GOH_ = pd.DataFrame(columns=columnas)
+        
+Guardado_GOH = BI.QxBI3('wmos_goh',
+'''
+SELECT
+    'LOF1' CD,
+    'Real' TIPO,
+    '7. GOH' FLUJO,
+    SUM(a.nbr_units) CANTIDAD,
+    trunc(a.end_date) FECHA,
+    'Sistema' ORIGEN
+FROM
+    prod_trkg_tran a,
+    locn_hdr lh,
+    item_cbo d
+WHERE 1 = 1
+    AND a.menu_optn_name = 'GH-LPNDispo SS'
+    AND lh.locn_id = to_locn
+    AND a.item_id = d.item_id
+    AND area = 'SS1'
+    AND TO_CHAR(a.end_date,'YYYY-MM-DD') IN ''','Fechas_Faltantes','''
+GROUP BY
+    trunc(a.end_date)''',Fechas_Faltantes)
+
+if Guardado_GOH.empty == False:         
+    
+    Guardado_GOH = Guardado_GOH.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['CANTIDAD'].sum().reset_index()
+    Guardado_GOH['PROCESO'] = '6. Guardado'
+    Guardado_GOH = Guardado_GOH[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    Guardado_GOH = pd.DataFrame(columns=columnas)
+
+Picking_GOH = BI.QxBI3('wmos_goh',
+'''
+SELECT
+    'LOF1' CD,
+    'Real' TIPO,
+    '7. GOH' FLUJO,
+    trunc(a.create_date_time) FECHA,
+    CASE 
+    WHEN o.ORDER_TYPE IN ('GOHEM','GOHS') THEN 'Empujes'
+    WHEN o.ORDER_TYPE IN ('PGOH','XPC') THEN 'XDock'
+    ELSE 'Otro'
+    END ORDEN_TYPE,
+    CASE o.do_type
+    WHEN 10 THEN 'Pedido Tienda'
+    WHEN 20 THEN 'Pedido Cliente'
+    END DO_TYPE,
+    CASE
+    WHEN stat_code = '90' THEN 'Completed'
+    WHEN stat_code = '99' THEN 'Cancelled'
+    ELSE 'Pendiente'
+    END status,
+    SUM(a.qty_alloc) CANTIDAD
+FROM
+    task_dtl   a
+    LEFT JOIN item_cbo   d ON  a.item_id = d.item_id
+    LEFT JOIN ORDERS o ON a.TC_ORDER_ID = o.TC_ORDER_ID
+WHERE
+    task_type IN (75,77)
+    AND TO_CHAR(create_date_time,'YYYY-MM-DD') IN ''','Fechas_Faltantes',''' 
+GROUP BY 
+    trunc(a.create_date_time),
+    CASE 
+    WHEN o.ORDER_TYPE IN ('GOHEM','GOHS') THEN 'Empujes'
+    WHEN o.ORDER_TYPE IN ('PGOH','XPC') THEN 'XDock'
+    ELSE 'Otro'
+    END,
+    CASE o.do_type
+    WHEN 10 THEN 'Pedido Tienda'
+    WHEN 20 THEN 'Pedido Cliente'
+    END, 
+    CASE
+    WHEN stat_code = '90' THEN 'Completed'
+    WHEN stat_code = '99' THEN 'Cancelled'
+    ELSE 'Pendiente'
+    END ''',Fechas_Faltantes)
+
+if Picking_GOH.empty == False:         
+        
+    Picking_GOH = Picking_GOH[Picking_GOH['DO_TYPE'] == 'Pedido Tienda' ]
+    Picking_GOH = Picking_GOH[Picking_GOH['STATUS'] != 'Cancelled' ]
+    Picking_GOH['ORIGEN'] = 'Sistema'
+
+    pxd = Picking_GOH[Picking_GOH['ORDEN_TYPE'] == 'XDock' ]
+    pxd = pxd.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['CANTIDAD'].sum().reset_index()
+    
+    
+    pf5 = Picking_GOH[Picking_GOH['ORDEN_TYPE'] == 'Empujes' ]
+    pf5 = pf5.groupby(['CD','TIPO','FLUJO','FECHA','ORIGEN'])['CANTIDAD'].sum().reset_index()
+
+    pxd['PROCESO'] = '8. Picking Xdock'
+    pxd = pxd[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+
+    pf5['PROCESO'] = '7. Picking F5'
+    pf5 = pf5[['CD','TIPO', 'FLUJO','PROCESO', 'CANTIDAD','FECHA','ORIGEN']]
+    
+else: 
+    columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+    pxd = pd.DataFrame(columns=columnas)
+    pf5 = pd.DataFrame(columns=columnas)
+
+GOH = pd.concat([RN_GOH_,TRF_GOH,PI_GOH_,RN_XD,Guardado_GOH,pf5,pxd])
+
+Fechas_Faltantes['FECHA'] = pd.to_datetime(Fechas_Faltantes['Fechas_Faltantes'], format = '%Y-%m-%d')
+F_Carga = datetime.now()
+Fechas_Faltantes['JoinCol'] = 1
+
+Agenda_RN = pd.DataFrame(dict(CD = ['LOF1','LOF2'],
+                                      TIPO = ['Agenda','Agenda'],
+                                      FLUJO = ['1. Recepcion','1. Recepcion'],
+                                      PROCESO = ['1.g. Recepcion Nacional','1.g. Recepcion Nacional'],
+                                      CANTIDAD = [0,0],
+                                      ORIGEN = ['Manual','Manual']))
+
+Agenda_RN['JoinCol'] = 1
+
+Agenda_RN = Fechas_Faltantes.merge(Agenda_RN, 
+                       how = 'left',
+                       on = 'JoinCol').drop(columns = ['JoinCol','Fechas_Faltantes']).rename(columns = {'Fechas_Faltantes':'FECHA'})
+
+
+
+a_Reales = pd.concat([c_Reales_L1,c_Reales_L2,GOH,Agenda_RN]) 
+# a_Reales = pd.concat([c_Reales_L1,c_Reales_L2,Agenda_RN])
+# En caso de que falle GOH habilitar esta y desabilitar la anterior adicional se debe desabilitar la filla 1151 (GOH = pd.concat([RN_GOH_,TRF_GOH,PI_GOH_,RN_XD,Guardado_GOH,pf5,pxd]))
+
+a_Reales['FECHA'] = pd.to_datetime(a_Reales['FECHA'])
+a_Reales['Dia'] = pd.to_timedelta(a_Reales['FECHA'].dt.dayofweek,'d')
+a_Reales['FECHA_CRUCE'] = a_Reales['FECHA'] - a_Reales['Dia']
+a_Reales['DIA'] = a_Reales['FECHA'].dt.day_name()
+a_Reales = pd.merge(a_Reales,calendario, how = 'left', left_on = 'FECHA_CRUCE', right_on = 'FECHA_INICIO')
+a_Reales = a_Reales.rename(columns={'SEMANA_PROGRAMACION':'SEMANA'})
+a_Reales['FECHA_CARGA'] = F_Carga
+a_Reales['CANTIDAD'] = a_Reales['CANTIDAD'].fillna(0)
+a_Reales['CANTIDAD'] = a_Reales['CANTIDAD'].astype('int64')    
+a_Reales = a_Reales[['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA','DIA', 'FECHA_CARGA','ORIGEN', 'SEMANA']]
+
+
+a_Reales['FLAG_ACT_MANUAL'] = 0
+
+a_Reales = BI.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = a_Reales)
+BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = a_Reales, Append = 1, path = path_gcp)
+
+
+
+
+
+
+El jue, 15 jun 2023 a las 15:16, Ismael segovia (<ismasegoviavial@gmail.com>) escribió:
+
+REALES BUNKER
+
+#%% Librerías
+
+from datetime import datetime, timedelta
+import logging
+import traceback
+import os, sys
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.append(path)
+import ToolsBI as BI
+import pandas as pd
+import numpy as np
+
+path_gcp = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/keys_equipos/bi-logistic-process-planificacion.json"
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+
+#%% Configuraciones Logger
+ 
+Nombre_ETL = 'ETL_reales_seguimiento_operacional'
+
+path_logging = rf'C:\Users\malejvillalobos\Falabella\BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS\GERENCIAS\PLANIFICACIÓN\COMITE_COMERCIAL_BUNKER_CUBO\Script\{Nombre_ETL}.log'
+
+logging.basicConfig(filename = path_logging,
+                    level = logging.DEBUG,
+                    format = '%(asctime)s:%(levelname)s:%(name)s:%(message)s', filemode='w')
+logging.debug('INICIO PROCESO')
+
+try:
+    Inicio_Script = datetime.today()
+    logging.debug("INICIADO {}".format(Inicio_Script))
+
+    try:
+        
+        FechasF5 = BI.QxGCP('''
+        SELECT DISTINCT FECHA FROM flb-rtl-dtl-logistic.gerencia_planificacion_operativa.reales_bunker_cc
+        WHERE ORIGEN not in ('Asertividad Manual')
+        ''')
+        
+        FechasF5['FECHA'] = pd.to_datetime(FechasF5['FECHA'], format = '%d-%m-%Y %H:%M:%S')
+        
+        print(f'Buscando fechas faltantes entre los días {min(FechasF5["FECHA"]).strftime("%Y-%m-%d")} y {datetime.today().date()-timedelta(1)}')
+        
+        Fechas_Faltantes = pd.DataFrame({'Fechas_Faltantes':pd.date_range(start = min(FechasF5['FECHA']), end = datetime.today().date()-timedelta(1)).difference(FechasF5['FECHA'])})
+        Fechas_Faltantes['Fechas_Faltantes'] = Fechas_Faltantes['Fechas_Faltantes'].dt.strftime('%Y-%m-%d')
+        
+        
+    except:
+        
+    
+        print('No hay datos escritos, por lo que buscamos únicamente el día de ayer')
+        Fechas_Faltantes = pd.DataFrame({'Fechas_Faltantes':[datetime.today().date()-timedelta(1)]})
+        Fechas_Faltantes = pd.DataFrame({'Fechas_Faltantes':pd.date_range(start = datetime.today().date()-timedelta(15), end = datetime.today().date()-timedelta(1))})
+        Fechas_Faltantes['Fechas_Faltantes'] = pd.to_datetime(Fechas_Faltantes['Fechas_Faltantes'])
+        Fechas_Faltantes['Fechas_Faltantes'] = Fechas_Faltantes['Fechas_Faltantes'].dt.strftime('%Y-%m-%d')
+    
+    
+    if Fechas_Faltantes.empty == False:
+        print(f'Días a buscar: {Fechas_Faltantes["Fechas_Faltantes"].T}')
+        
+    
+        calendario= BI.QxGCP( query = """SELECT  * FROM `flb-rtl-dtl-logistic.gerencia_planificacion_operativa.calendario` """, path =path_gcp )
+
+        
+        Real_Trf_LOF1_ = BI.QxBI3('sab',
+        '''
+        SELECT
+           'LOF1' CD,
+           'Real' TIPO,
+           '1. Recepcion' FLUJO,
+           '1.d. Recepcion Transferencia' PROCESO,
+           SUM(CASE 
+                WHEN SUBSTR(F132HIST.CREFEREN, 1, 1) = 'K' THEN F002CURV.QUNIDADE * F132HIST.QCANTIDA 
+                ELSE F132HIST.QCANTIDA
+                END) CANTIDAD,
+           TRUNC(F132HIST.FCREAREG) FECHA,
+           'Sistema' ORIGEN
+        FROM F132HIST
+           INNER JOIN F002ARTI ON F132HIST.CREFEREN = F002ARTI.CREFEREN
+           AND  F002ARTI.DDEPARTA<>'J99' AND --ELIMINA MATERIALES
+           F002ARTI.DDEPARTA||F002ARTI.DFAMILIA<>'J1804' -- ELIMINA JUAN VALDEZ
+           left JOIN F043TTRA ON F132HIST.CCENTDIS = F043TTRA.CCENTDIS 
+           AND F132HIST.CTIPTRAB = F043TTRA.CTIPTRAB
+           left JOIN F001ZOAL
+           ON F132HIST.CZONAORI = F001ZOAL.CZONALMA
+           AND F132HIST.CALMACEN = F001ZOAL.CALMACEN
+           LEFT JOIN F002CURV
+           ON F132HIST.CREFEREN = F002CURV.CREFCURV
+           LEFT JOIN F008FUNC F008
+           ON F132HIST.CFUNCION = F008.CFUNCION
+           LEFT Join F054VLOG On F132HIST.CREFEREN = f054vlog.CREFEREN
+           AND F054VLOG.CVARLOGI='1' AND F054VLOG.CCONSIGN='1'
+           LEFT JOIN F009USUA ON F132HIST.COPECREA = F009USUA.CUSUARIO
+        WHERE 
+           F132HIST.CALMACEN IN ('944','945')
+           AND (
+           (F132HIST.CFUNCION IN ('RF-46','P') 
+           AND F132HIST.CTIPTRAB In ('RT')) 
+           OR (F132HIST.CFUNCION IN ('GEN_PAL') 
+           AND F132HIST.CTIPTRAB In ('DT'))
+           )
+           AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+        GROUP BY
+            TRUNC(F132HIST.FCREAREG)''',Fechas_Faltantes)
+   
+    
+        Real_Recep_Nac_LOF1_ = BI.QxBI3('sab',
+        '''
+        SELECT 
+            'LOF1' CD,
+                    'Real' TIPO,
+                    '1. Recepcion' FLUJO,
+                    '1.g. Recepcion Nacional' PROCESO,
+            SUM(DECODE(SUBSTR(F069LALB.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F069LALB.QCONRECI) CANTIDAD,
+            TRUNC(F068CALB.FDOCUMEN) FECHA,
+            'Sistema' ORIGEN
+        FROM
+            F069LALB 
+            LEFT JOIN F068CALB ON F068CALB.CALBARAN = F069LALB.CALBARAN AND 
+                F068CALB.CALMACEN = F069LALB.CALMACEN AND 
+                F068CALB.CCNSGENT = F069LALB.CCNSGENT AND 
+                F068CALB.CEMPRESA = F069LALB.CEMPRESA AND 
+                F068CALB.CTIPTRAB = F069LALB.CTIPTRAB AND 
+                F069LALB.CENTRADA = F068CALB.CENTRADA
+            LEFT JOIN F002ARTI ON F002ARTI.CEMPRESA = F069LALB.CEMPRESA AND 
+                F002ARTI.CCONSIGN = F069LALB.CCNSGENT AND 
+                F002ARTI.CREFEREN = F069LALB.CREFEREN
+            LEFT JOIN F053MENL ON 
+                F069LALB.CCNSGENT = F053MENL.CCNSGENT AND 
+                F069LALB.CEMPRESA = F053MENL.CEMPRESA AND 
+                F069LALB.CTIPTRAB = F053MENL.CTIPTRAB AND 
+                F069LALB.CENTRADA = F053MENL.CENTRADA AND 
+                F069LALB.CCONTLIN = F053MENL.CCONTLIN AND 
+                F069LALB.CREFEREN = F053MENL.CREFEREN
+            LEFT JOIN F002CURV C ON F069LALB.CREFEREN = C.CREFCURV
+        WHERE 1 = 1
+            
+            AND F068CALB.CALMACEN IN ('944')
+            AND F068CALB.CENTRADA NOT LIKE 'BP%'
+            AND F002ARTI.DDEPARTA NOT IN ('J99','J95')
+            AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA NOT IN ('J1804')
+            AND (F068CALB.CENTRADA LIKE '%X%' OR F068CALB.CENTRADA LIKE 'N%')
+            AND F069LALB.CSITLALB = 'FI'
+            AND TO_CHAR(F068CALB.FDOCUMEN,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+        GROUP BY
+            TRUNC(F068CALB.FDOCUMEN)''',Fechas_Faltantes)
+    
+        Real_Proc_Imp_LOF1 = BI.QxBI3('sab',
+        '''
+        SELECT
+            'LOF1' CD,
+            'Real' TIPO,
+            '2. Procesos' FLUJO,
+            '2.a. Proceso Importado' PROCESO, 
+            SUM(to_number(DECODE(SUBSTR(F132HIST.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F132HIST.QCANTIDA)) CANTIDAD,
+            TRUNC(F132HIST.FCREAREG) FECHA,
+            'Sistema' ORIGEN
+        FROM 
+            F132HIST 
+            INNER JOIN F002ARTI ON F132HIST.CREFEREN = F002ARTI.CREFEREN 
+            AND F132HIST.CCONSIGN = F002ARTI.CCONSIGN 
+            AND F132HIST.CEMPRESA = F002ARTI.CEMPRESA 
+            LEFT JOIN F002CURV C ON F132HIST.creferen = C.CREFCURV
+        WHERE
+            F132HIST.CFUNCION In ('RF-01','RF-46','RF-19','P','GEN_PAL')
+            AND F132HIST.CALMACEN In ('944','945')
+            AND F132HIST.CTIPTRAB In ('EI','BP','OI','OC','PC','OP','DI')
+            AND F132HIST.TOBSERVA is not null
+            AND F132HIST.CLUGENTR<>'2624'
+            AND F002ARTI.DDEPARTA <> 'J99'
+            AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA <> 'J1804'
+            AND (F132HIST.CFUNCION not In ('GEN_PAL') AND F132HIST.CTIPTRAB not In ('DI'))
+            AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+        GROUP BY
+            TRUNC(F132HIST.FCREAREG)''',Fechas_Faltantes)
+    
+        Guardado_LOF1 = BI.QxBI3('sab',
+        '''
+        Select 
+            'LOF1' CD,
+            'Real' TIPO,
+            '3. Almacenamiento' FLUJO,
+            CASE 
+            WHEN F132HIST.CALMACEN IN ('913','914','944','945','675') THEN '3.a. Guardado F5'
+            ELSE '3.b. Guardado Internet'
+            END PROCESO,
+            SUM(Decode(SubStr(f132hist.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * f132hist.QCANTIDA) CANTIDAD,
+            Trunc(f132hist.FECHAINI) as FECHA,
+            'Sistema' ORIGEN
+        FROM F132HIST
+            INNER JOIN F002ARTI
+            ON f132hist.CCONSIGN = f002arti.CCONSIGN
+            And f132hist.CEMPRESA = f002arti.CEMPRESA
+            And f132hist.CREFEREN = f002arti.CREFEREN
+            LEFT JOIN F002CURV C
+            ON f132hist.CREFEREN = C.CREFCURV
+        Where 
+            f132hist.CFUNCION = 'RF-03'
+            AND f002arti.DDEPARTA <> 'J99'
+            AND f002arti.DDEPARTA || f002arti.DFAMILIA <> 'J1804'
+            AND f132hist.CFUNCION = 'RF-03'
+            AND F132HIST.CALMACEN IN ('944','675', -- F5
+            '200','201','209','983') -- DVD
+            AND TO_CHAR(F132HIST.FECHAINI,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+        GROUP BY 
+            Trunc(f132hist.FECHAINI),
+            CASE 
+            WHEN F132HIST.CALMACEN IN ('913','914','944','945','675') THEN '3.a. Guardado F5'
+            ELSE '3.b. Guardado Internet'
+            END ''',Fechas_Faltantes)
+    
+        Real_Xdock_Imp_L1 = BI.QxBI4('sab',
+        '''
+        Select distinct f132HIST.CALMACEN,
+               f132hist.CFUNCION,
+               f132hist.CNUPALET,
+               f132hist.cpaledes,
+               f132hist.CTIPTRAB,
+               f132hist.CREFEREN,
+               C.CREFEREN,
+               f132hist.CENTRADA,
+               f132hist.CNPEDIDO,
+               f132hist.CLUGENTR,
+               Decode(F132HIST.CLUGENTR,'944','CD',Decode(F132HIST.CLUGENTR,'','SORTER' ,'XDOCK')) DESTINO,
+               f132hist.COPECREA,
+               f132hist.fcreareg,
+               trunc(f132hist.fcreareg) as fecha,
+               F002ARTI.DDEPARTA AS LINEA, 
+               F002ARTI.DDEPARTA||F002ARTI.DFAMILIA AS SUBLINEA, 
+               Substr(F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART,1,7) AS CLASE, 
+               F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART AS SUBCLASE, 
+               F002ARTI.DMARCART, 
+               F002ARTI.CTEMPORADA,
+               to_number(DECODE(SUBSTR(F132HIST.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F132HIST.QCANTIDA) CANTIDAD,
+               F132HIST.TOBSERVA
+        From
+               F132HIST F132HIST, F002CURV C, F002ARTI,
+               (Select F132HIST.CPALEDES, F132HIST.COPECREA
+                From SICAD30.F132HIST F132HIST
+                Where  (TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN''', 'Fechas_Faltantes','''
+                       And F132HIST.CFUNCION In ('RF-01', 'RF-46', 'RF-19', 'P', 'GEN_PAL')
+                       And F132HIST.CALMACEN In ('944', '945')
+                       And F132HIST.CTIPTRAB In ('EI', 'BP', 'OI', 'OC', 'PC', 'OP', 'DI')
+                       And F132HIST.TOBSERVA Is Not Null
+                       And F132HIST.CLUGENTR not in ('2624','944','9944','200','2000','201','9941','209','9949',
+                                                     '943','9943','675','1975','983','9983','991','9991'))) P
+        Where  F132HIST.CREFEREN = F002ARTI.CREFEREN
+               AND F132HIST.CCONSIGN = F002ARTI.CCONSIGN
+               AND F132HIST.CEMPRESA = F002ARTI.CEMPRESA
+               AND F132HIST.creferen = C.CREFCURV(+)
+               and P.CPALEDES = f132hist.CNUPALET(+)
+               AND P.COPECREA = F132HIST.COPECREA(+)
+               AND F132HIST.CFUNCION IN ('RF-01', 'RF-46', 'RF-19', 'P', 'GEN_PAL')
+               AND F132HIST.CTIPTRAB IN ('EI', 'BP', 'OI', 'OC', 'PC', 'OP', 'DI') 
+               AND F002ARTI.DDEPARTA not in ('J99','J00','J95')
+               AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART <> 'J1804'
+               AND TO_CHAR(F132HIST.FCREAREG,'YYYY-MM-DD') IN
+        ''', 'Fechas_Faltantes','',Fechas_Faltantes)
+
+        if Real_Xdock_Imp_L1.empty == False:         
+                
+            #Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1[Real_Xdock_Imp_L1['CLUGENTR']!='9990']
+            Real_Xdock_Imp_L1['PALLET LABEL'] = np.where((Real_Xdock_Imp_L1['CTIPTRAB'] == 'DI') & (Real_Xdock_Imp_L1['CFUNCION'] == 'GEN_PAL') , 'PALLET LABEL', 'XD_IMPORTADO' )
+            Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1[Real_Xdock_Imp_L1['PALLET LABEL'] != 'PALLET LABEL' ]
+        
+            Real_Xdock_Imp_L1_['CD'] = 'LOF1'
+            Real_Xdock_Imp_L1_['TIPO'] = 'Real'
+            Real_Xdock_Imp_L1_['FLUJO'] = '4. Xdock'
+            Real_Xdock_Imp_L1_['PROCESO'] = '4.a. XDock Importado'
+            
+            Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1_.groupby(['CD','TIPO','FLUJO','PROCESO','FECHA'])['CANTIDAD'].sum().reset_index()
+            Real_Xdock_Imp_L1_['ORIGEN'] = 'Sistema'
+            Real_Xdock_Imp_L1_ = Real_Xdock_Imp_L1_[['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN']]    
+  
+        else: 
+            columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+            Real_Xdock_Imp_L1_ = pd.DataFrame(columns=columnas)
+    
+        Real_XD_Nac_LOF1_=BI.QxBI3('sab',
+        '''
+        SELECT 
+            SUM(DECODE(SUBSTR(F069LALB.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F069LALB.QCONRECI) CANTIDAD,
+            TRUNC(F068CALB.FDOCUMEN) FECHA
+        FROM
+            F069LALB 
+            LEFT JOIN F068CALB ON F068CALB.CALBARAN = F069LALB.CALBARAN AND 
+                F068CALB.CALMACEN = F069LALB.CALMACEN AND 
+                F068CALB.CCNSGENT = F069LALB.CCNSGENT AND 
+                F068CALB.CEMPRESA = F069LALB.CEMPRESA AND 
+                F068CALB.CTIPTRAB = F069LALB.CTIPTRAB AND 
+                F069LALB.CENTRADA = F068CALB.CENTRADA
+            LEFT JOIN F002ARTI ON F002ARTI.CEMPRESA = F069LALB.CEMPRESA AND 
+                F002ARTI.CCONSIGN = F069LALB.CCNSGENT AND 
+                F002ARTI.CREFEREN = F069LALB.CREFEREN
+            LEFT JOIN F053MENL ON 
+                F069LALB.CCNSGENT = F053MENL.CCNSGENT AND 
+                F069LALB.CEMPRESA = F053MENL.CEMPRESA AND 
+                F069LALB.CTIPTRAB = F053MENL.CTIPTRAB AND 
+                F069LALB.CENTRADA = F053MENL.CENTRADA AND 
+                F069LALB.CCONTLIN = F053MENL.CCONTLIN AND 
+                F069LALB.CREFEREN = F053MENL.CREFEREN
+            LEFT JOIN F002CURV C ON F069LALB.CREFEREN = C.CREFCURV
+        WHERE 1 = 1
+            
+            AND F068CALB.CALMACEN IN ('944')
+            AND F068CALB.CENTRADA NOT LIKE 'BP%'
+            AND F002ARTI.DDEPARTA NOT IN ('J99','J95')
+            AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA NOT IN ('J1804')
+            AND (F068CALB.CENTRADA LIKE '%X%' OR F068CALB.CENTRADA LIKE 'N%')
+            AND F069LALB.CSITLALB = 'FI'
+            AND F053MENL.CLUGENTR NOT IN (9944, 2000, 9941, 9949, 1975, 9945, 9983)
+            AND TO_CHAR(F068CALB.FDOCUMEN,'YYYY-MM-DD') IN ''','Fechas_Faltantes','''
+        GROUP BY
+            TRUNC(F068CALB.FDOCUMEN)''',Fechas_Faltantes)
+
+        if Real_XD_Nac_LOF1_.empty == False:         
+                
+            Real_XD_Nac_LOF1_['CD'] = 'LOF1'
+            Real_XD_Nac_LOF1_['TIPO'] = 'Real'
+            Real_XD_Nac_LOF1_['FLUJO'] = '4. Xdock'
+            Real_XD_Nac_LOF1_['PROCESO'] = '4.b. Xdock Nacional'
+            Real_XD_Nac_LOF1_['ORIGEN'] = 'Sistema'
+            
+            Real_XD_Nac_LOF1 = Real_XD_Nac_LOF1_.reindex(columns=['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','ORIGEN'])
+           
+        else: 
+            columnas = ['CD', 'TIPO', 'FLUJO', 'PROCESO', 'CANTIDAD', 'FECHA', 'ORIGEN']
+            Real_XD_Nac_LOF1 = pd.DataFrame(columns=columnas)
+
+        Picking_LOF1 = BI.QxBI3('sab',
+        '''
+        SELECT 
+            'LOF1' CD,
+            'Real' TIPO,
+            '5. Picking' FLUJO,
+            CASE 
+            WHEN F057PEDC.XCLILUEN IN ('2000','9921','9941','9949','9983') THEN '5.b. Picking destino DVD'
+            WHEN F057PEDC.XCLILUEN NOT IN ('2000','9921','9941','9949','9983') AND F085LSUR.CALMACEN <> '912' THEN '5.a. Picking destino F5'
+            ELSE 'N/A'
+            END PROCESO, 
+            SUM(to_number(DECODE(SUBSTR(F085LSUR.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F085LSUR.QSURTIDA)) AS CANTIDAD,
+            TRUNC(F085LSUR.FPICKING) FECHA,
+            'Sistema' ORIGEN
+        FROM F085LSUR
+            LEFT JOIN F057PEDC ON F085LSUR.CEMPRESA = F057PEDC.CEMPRESA 
+            AND F085LSUR.CTIPTRAB = F057PEDC.CTIPTRAB 
+            AND F085LSUR.CCNSGSAL = F057PEDC.CCNSGSAL 
+            AND F085LSUR.CNPEDIDO = F057PEDC.CNPEDIDO   
+            INNER JOIN F002ARTI ON F085LSUR.CCNSGSAL = F002ARTI.CCONSIGN 
+            AND F085LSUR.CEMPRESA = F002ARTI.CEMPRESA 
+            AND F085LSUR.CREFEREN = F002ARTI.CREFEREN 
+            LEFT JOIN F002CURV C ON F085LSUR.CREFEREN = C.CREFCURV
+        WHERE 
+            F085LSUR.CTIPTRAB In ('S1','S2','S3','S4','R1','R2','R3','R4','S9','S8','SL','SM')        
+            AND F085LSUR.CZONALMA <> 'FXX'
+            AND F002ARTI.DDEPARTA NOT IN ('J18','J99')
+            AND F085LSUR.CALMACEN <> '912'
+            AND TO_CHAR(F085LSUR.FPICKING,'YYYY-MM-DD') IN''','Fechas_Faltantes','''
+        GROUP BY     
+            CASE 
+            WHEN F057PEDC.XCLILUEN IN ('2000','9921','9941','9949','9983') THEN '5.b. Picking destino DVD'
+            WHEN F057PEDC.XCLILUEN NOT IN ('2000','9921','9941','9949','9983') AND F085LSUR.CALMACEN <> '912' THEN '5.a. Picking destino F5'
+            ELSE 'N/A'
+            END,
+            TRUNC(F085LSUR.FPICKING)''',Fechas_Faltantes)
+    
+        Planificacion_Picking_LOF1 = BI.QxBI2('sab',
+        '''
+        SELECT 
+            F057PEDC.CCENTDIS, 
+            F057PEDC.CTIPTRAB AS TIPO_TRABAJO,
+            F057PEDC.CNPEDIDO, 
+            F002ARTI.DDEPARTA AS LINEA,
+            F002ARTI.DDEPARTA||F002ARTI.DFAMILIA AS SUBLINEA, 
+            SUBSTR(F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART,1,7) AS CLASE, 
+            F002ARTI.DDEPARTA||F002ARTI.DFAMILIA||F002ARTI.DBARRART AS SUBCLASE, 
+            DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.CREFEREN, F058PEDL.CREFEREN) AS CREFEREN, 
+            F058PEDL.CREFEREN AS SKU,
+            F002ARTI.DARTICUL,
+            F002ARTI.DMARCART,
+            F057PEDC.XCLILUEN, 
+            F057PEDC.XSITSALI,
+            F057PEDC.TOBSERVA, 
+            Trunc(F057PEDC.FENTRADA) , 
+            Trunc(F057PEDC.FPLANIFI) AS FECHA, 
+            F057PEDC.FESALIDA, 
+            DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QUNIPEDI AS QUNIPEDI,
+            DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QSISTOCK AS QSISTOCK,
+            (DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QANUASIG )
+            +(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QANULADA)
+            +(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QPEANULA) AS QTANULADA, 
+            (DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QUNIPEDI )
+            -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K',C.QUNIDADE, 1) * F058PEDL.QSISTOCK )
+            -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QANUASIG)
+            -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1),'K', C.QUNIDADE, 1) * F058PEDL.QANULADA)
+            -(DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QPEANULA) AS CANTIDAD,
+            DECODE(SUBSTR(F058PEDL.CREFEREN, 1, 1), 'K', C.QUNIDADE, 1) * F058PEDL.QSURTIDA AS QTATENDIDA
+        FROM F002ARTI, F057PEDC, F058PEDL,F002CURV C
+        WHERE 
+            F058PEDL.CCENTDIS = F057PEDC.CCENTDIS
+            AND F058PEDL.CCNSGSAL = F057PEDC.CCNSGSAL
+            AND F058PEDL.CEMPRESA = F057PEDC.CEMPRESA
+            AND F058PEDL.CNPEDIDO = F057PEDC.CNPEDIDO
+            AND F058PEDL.CTIPTRAB = F057PEDC.CTIPTRAB
+            AND F058PEDL.FESALIDA = F057PEDC.FESALIDA
+            AND F002ARTI.CCONSIGN = F058PEDL.CCNSGSAL
+            AND F002ARTI.CEMPRESA = F058PEDL.CEMPRESA
+            AND F002ARTI.CREFEREN = F058PEDL.CREFEREN
+            AND F058PEDL.CREFEREN = C.CREFCURV(+)
+            AND F057PEDC.XSITSALI not in ('RE')
+            AND F002ARTI.DDEPARTA not in ('J99')
+            AND F002ARTI.DDEPARTA||F002ARTI.DFAMILIA not in ('J1804')
+            AND F057PEDC.CCENTDIS not in ('007')
+            AND (F057PEDC.CTIPTRAB In ('S1','S2','S3','S4','S6','S8','S9','R1','R2','R3','R4','SM'))
+                 AND (F057PEDC.CEMPRESA='T1')
+                 AND (F057PEDC.CCNSGSAL='1')
+                 AND TO_CHAR(F057PEDC.FPLANIFI ,'YYYY-MM-DD') IN''', 'Fechas_
