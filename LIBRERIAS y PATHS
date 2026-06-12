@@ -1,0 +1,262 @@
+#%% LIBRERIAS y PATHS
+import pandas as pd
+
+from google.cloud import bigquery
+from google.oauth2 import service_account
+from os import listdir
+import shutil
+import numpy as np
+import sys
+import os
+path = r'C:/Users/' +  os.getlogin()  +'/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/EJECUTAR_QUERY'
+sys.path.insert(0, path)
+import ToolsBI as BI
+from datetime import datetime,  timedelta,date
+from dateutil.relativedelta import relativedelta
+from os import listdir
+import win32api
+
+path_gcp = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GCP_KEY/keys_equipos/bi-logistic-process-planificacion.json"
+path_in = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Asertividad/Archivos_in"
+path_out = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Asertividad/Archivos_out"
+path_out_cascada = r"C:/Users/" + os.getlogin() + "/Falabella/BUSINESS INTELLIGENCE & ANALYTICS - BI_&_ANALYTICS/GERENCIAS/PLANIFICACIÓN/COMITE_COMERCIAL_BUNKER_CUBO/Script/Carga_GCP/Actualizacion_on_time/Cascada/Archivos_in"
+
+PROJECT_NAME = 'flb-rtl-dtl-logistic'
+DATASET_NAME = 'gerencia_planificacion_operativa'
+
+#%% PLANIFICACION OPERATIVA
+
+# =============================================================================
+# =============================================================================
+# # INICIO DE ESPACIO PARA MODIFICAR
+# =============================================================================
+# =============================================================================
+
+# Ingresar dentro de las comillas simples fecha de inicio y término de semana cerrada (Lunes y Domingo en formado AAAA-MM-DD)
+
+inicio = '2023-06-12'
+fin = '2023-06-18'
+
+# Cómo se llama el proceso "Ex BUFFER" ?
+
+variable_buffer = 'Reprogramado'
+
+# =============================================================================
+# =============================================================================
+# # FIN DE ESPACIO PARA MODIFICAR
+# =============================================================================
+# =============================================================================
+
+#%% SCRIPT DE PROCESAMIENTO
+
+fecha_carga = datetime.now()
+
+a = datetime.strptime(str(inicio),'%Y-%m-%d')
+b = datetime.strptime(str(fin),'%Y-%m-%d')
+
+for file in listdir(path_in):
+    
+    print(file)
+    
+    temp = pd.ExcelFile(path_in+'/'+file).parse(sheet_name = 'Base').fillna(0)
+    
+    temp.columns = temp.columns.str.replace(' ','_').str.replace('.','').str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
+    
+    temp['DEST'] = temp['DEST'].astype('str')
+    df = temp[temp['LINEA'] != 'J99']
+        
+# =============================================================================
+#     PLAN AJUSTADO
+# =============================================================================
+    
+    df['FECHARECEPCION']=df['FECHARECEPCION'].replace({0:''})
+    df['FECHARECEPCION']=pd.to_datetime(df['FECHARECEPCION'])
+
+    PA_Recep_Imp_LOF1 = df[(df['DEST'].isin(['944','945','945 VeV','944 GLLTS','944 ME','991 AS','943'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')] 
+    PA_Recep_Imp_LOF1_GOH = df[(df['DEST'].isin(['991 GOH'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')]    
+    PA_Recep_MMEE_LOF1 = df[(df['DEST'].isin(['944 ME','945 ME'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+    PA_Recep_Cafe_LOF1 = df[(df['DEST'].isin(['945 Café'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+    PA_Recep_PL_LOF1 = df[(df['DEST'].isin(['944 PL','945 PL'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+    PA_MMEE_LOF2 = df[(df['DEST'].isin(['990 ME'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+    PA_PL_LOF2 = df[(df['DEST'].isin(['990 PL'])) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+
+    def funcion1(df,dummy, campo1, campo2, campo3):
+        if df.empty == False:
+            df2 = df.groupby([campo1, campo2])[campo3].sum().reset_index()
+        else:
+            
+           df2= dummy.groupby([campo1, campo2])[campo3].sum().reset_index()
+           df2[campo3] = 0
+        return df2 
+    
+    PA_Recep_Imp_LOF1 = funcion1(df = PA_Recep_Imp_LOF1,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    PA_Recep_Imp_LOF1_GOH = funcion1(df = PA_Recep_Imp_LOF1_GOH,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    PA_Recep_MMEE_LOF1 = funcion1(df = PA_Recep_MMEE_LOF1,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    PA_Recep_Cafe_LOF1 = funcion1(df = PA_Recep_Cafe_LOF1,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    PA_Recep_PL_LOF1 = funcion1(df = PA_Recep_PL_LOF1,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    PA_MMEE_LOF2 = funcion1(df = PA_MMEE_LOF2,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    PA_PL_LOF2 = funcion1(df = PA_PL_LOF2,dummy = df, campo1 = 'FECHATENTATIVA', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    
+    PA_Recep_Imp_LOF1['UNIDADES_TOTALES'] = PA_Recep_Imp_LOF1['UDS'].sum()
+    PA_Recep_Imp_LOF1_GOH['UNIDADES_TOTALES'] = PA_Recep_Imp_LOF1_GOH['UDS'].sum()
+    PA_Recep_MMEE_LOF1['UNIDADES_TOTALES'] = PA_Recep_MMEE_LOF1['UDS'].sum()
+    PA_Recep_Cafe_LOF1['UNIDADES_TOTALES'] = PA_Recep_Cafe_LOF1['UDS'].sum()
+    PA_Recep_PL_LOF1['UNIDADES_TOTALES'] = PA_Recep_PL_LOF1['UDS'].sum()
+    PA_MMEE_LOF2['UNIDADES_TOTALES'] = PA_MMEE_LOF2['UDS'].sum()
+    PA_PL_LOF2['UNIDADES_TOTALES'] = PA_PL_LOF2['UDS'].sum()
+
+    PA_Recep_Imp_LOF1 = PA_Recep_Imp_LOF1.assign(PROCESO='RECEPCION IMPORTADO LOF1')    
+    PA_Recep_Imp_LOF1_GOH = PA_Recep_Imp_LOF1_GOH.assign(PROCESO='Recepcion Importado GOH')  
+    PA_Recep_MMEE_LOF1 = PA_Recep_MMEE_LOF1.assign(PROCESO='PROCESO MMEE')  
+    PA_Recep_Cafe_LOF1 = PA_Recep_Cafe_LOF1.assign(PROCESO='RECEPCION CAFE LOF1')  
+    PA_Recep_PL_LOF1 = PA_Recep_PL_LOF1.assign(PROCESO='PALLET LABEL LOF1')  
+    PA_MMEE_LOF2 = PA_MMEE_LOF2.assign(PROCESO='PROCESO MMEE LOF2')  
+    PA_PL_LOF2 = PA_PL_LOF2.assign(PROCESO='PL LOF 2')  
+
+    Planes = pd.concat([PA_Recep_Imp_LOF1,PA_Recep_Imp_LOF1_GOH,PA_Recep_MMEE_LOF1,PA_Recep_Cafe_LOF1,PA_Recep_PL_LOF1,PA_MMEE_LOF2,PA_PL_LOF2])
+    Planes = Planes[Planes['UDS']!=0]
+    Planes['ORIGEN'] = 'Asertividad Manual'     
+    Planes['FECHA_CARGA'] = fecha_carga
+    Planes = Planes.rename(columns={'UDS':'UNIDADES','FECHATENTATIVA':'FECHA','SEMANA_COMEX':'SEMANA'})
+    Planes['DIA'] = Planes['FECHA'].dt.day_name()
+    Planes['DENOMINADOR'] = 1
+    Planes['TIPO'] = 'Plan Ajustado'
+    Planes = Planes[['PROCESO','UNIDADES_TOTALES','FECHA','DIA','DENOMINADOR','UNIDADES','FECHA_CARGA','ORIGEN','SEMANA','TIPO']]
+    Planes = Planes[Planes['PROCESO'] != 'PROCESO MMEE LOF2']
+# =============================================================================
+#     REALES
+# =============================================================================
+    
+    df_ = df[(df['FECHARECEPCION'] >= a) & (df['FECHARECEPCION'] <= b)]
+
+    Real_Recep_Imp_LOF1 = df_[(df_['DEST'].isin(['944','945','945 VeV','944 GLLTS','944 ME','991 AS','943']))]
+    Real_Recep_Imp_LOF1_GOH = df_[(df_['DEST'].isin(['991 GOH']))]
+    Real_Recep_Cafe_LOF1 = df_[(df_['DEST'].isin(['945 Café']))]
+    Real_Recep_MMEE_LOF1 = df_[(df_['DEST'].isin(['944 ME','945 ME']))]
+    Real_Recep_PL_LOF1 = df_[(df_['DEST'].isin(['944 PL','945 PL']))]
+    Real_Recep_MMEE_LOF2 = df_[(df_['DEST'].isin(['990 ME']))]
+    Real_Recep_PL_LOF2 = df_[(df_['DEST'].isin(['990 PL']))]
+    Real_Proc_PL_L1 = Real_Recep_PL_LOF1
+    
+
+    def funcion1(df_,dummy, campo1, campo2, campo3):
+        if df_.empty == False:
+            df2 = df_.groupby([campo1, campo2])[campo3].sum().reset_index()
+        else:
+            
+           df2= dummy.groupby([campo1, campo2])[campo3].sum().reset_index()
+           df2[campo3] = 0
+        return df2 
+
+    Real_Recep_Imp_LOF1 = funcion1(df_ = Real_Recep_Imp_LOF1,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Recep_Imp_LOF1_GOH = funcion1(df_ = Real_Recep_Imp_LOF1_GOH,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Recep_MMEE_LOF1 = funcion1(df_ = Real_Recep_MMEE_LOF1,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Recep_Cafe_LOF1 = funcion1(df_ = Real_Recep_Cafe_LOF1,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Recep_PL_LOF1 = funcion1(df_ = Real_Recep_PL_LOF1,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Recep_MMEE_LOF2 = funcion1(df_ = Real_Recep_MMEE_LOF2,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Recep_PL_LOF2 = funcion1(df_ = Real_Recep_PL_LOF2,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    Real_Proc_PL_L1 = funcion1(df_ = Real_Proc_PL_L1,dummy = df_, campo1 = 'FECHARECEPCION', campo2 ='SEMANA_COMEX' , campo3 = 'UDS')
+    
+    Real_Recep_Imp_LOF1 = Real_Recep_Imp_LOF1.assign(CD = 'LOF1', TIPO = 'Real', FLUJO = '1. Recepcion', PROCESO = '1.a. Recepcion Importado', ORIGEN = 'Asertividad Manual' )
+    Real_Recep_Imp_LOF1_GOH = Real_Recep_Imp_LOF1_GOH.assign(CD = 'LOF1', TIPO = 'Real', FLUJO = '7. GOH', PROCESO = '1. Recepcion Importado', ORIGEN = 'Asertividad Manual' )
+    Real_Recep_MMEE_LOF1 = Real_Recep_MMEE_LOF1.assign(CD = 'LOF1', TIPO = 'Real', FLUJO = '1. Recepcion', PROCESO = '1.c. Recepcion MMEE', ORIGEN = 'Asertividad Manual' )
+    Real_Recep_Cafe_LOF1 = Real_Recep_Cafe_LOF1.assign(CD = 'LOF1', TIPO = 'Real', FLUJO = '1. Recepcion', PROCESO = '1.e. Recepcion Juan Valdes', ORIGEN = 'Asertividad Manual' )
+    Real_Recep_PL_LOF1 = Real_Recep_PL_LOF1.assign(CD = 'LOF1', TIPO = 'Real', FLUJO = '1. Recepcion', PROCESO = '1.f. Recepcion Pallet Label', ORIGEN = 'Asertividad Manual' )  
+    Real_Recep_MMEE_LOF2 = Real_Recep_MMEE_LOF2.assign(CD = 'LOF2', TIPO = 'Real', FLUJO = '1. Recepcion', PROCESO = '1.c. Recepcion MMEE', ORIGEN = 'Asertividad Manual' )
+    Real_Recep_PL_LOF2 = Real_Recep_PL_LOF2.assign(CD = 'LOF2', TIPO = 'Real', FLUJO = '1. Recepcion', PROCESO = '1.f. Recepcion Pallet Label', ORIGEN = 'Asertividad Manual' )
+    Real_Proc_PL_L1 = Real_Recep_PL_LOF1.assign(CD = 'LOF1', TIPO = 'Real', FLUJO = '2. Procesos', PROCESO = '2.b. Proceso Pallet Label', ORIGEN = 'Asertividad Manual' )  
+
+    Reales = pd.concat([Real_Recep_Imp_LOF1,Real_Recep_Imp_LOF1_GOH,Real_Recep_Cafe_LOF1,Real_Recep_MMEE_LOF1,
+                        Real_Recep_PL_LOF1,Real_Recep_MMEE_LOF2,Real_Recep_PL_LOF2,Real_Proc_PL_L1])
+    
+    Reales = Reales.rename(columns={'UDS':'CANTIDAD','FECHARECEPCION':'FECHA'})
+
+    Reales = Reales[Reales['CANTIDAD']!=0]
+    Reales['FECHA_CARGA'] = fecha_carga
+    Reales['DIA'] = Reales['FECHA'].dt.day_name()
+    Reales['SEMANA'] = Reales['SEMANA_COMEX'].min()
+    Reales = Reales[['CD','TIPO','FLUJO','PROCESO','CANTIDAD','FECHA','DIA','FECHA_CARGA','ORIGEN','SEMANA']]
+    
+# =============================================================================
+#     CASCADA
+# =============================================================================
+#Cascada__.dtypes
+
+    Cascada_ = df[(df['DEST']!= '945 Café' ) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+    Cascada__ = df[(df['DEST']!= '945 Café' ) & (df['ASERTIVO_PROGRAMA'] == 'Si')]
+    Buffer = df[(df['REPROGRAMACIONES_NO_ASERTIVAS']== 1 )]
+    Cascada = Cascada_[['CONTENEDORES','DEST','UDS','OBSERVACION','SEMANA_COMEX']]
+    Cascada['OBSERVACION'] = Cascada['OBSERVACION'].astype('str')
+
+    Buffer_u = Buffer.groupby('SEMANA_COMEX')['UDS'].sum().reset_index()
+    Buffer_c = Buffer.groupby('SEMANA_COMEX')['CONTENEDORES'].count().reset_index()
+    Buffer_ = Buffer_c.assign(OBSERVACION = variable_buffer)
+    Buffer_['DOWN'] = Buffer_u['UDS']
+    Buffer_ = Buffer_[['OBSERVACION','DOWN','CONTENEDORES','SEMANA_COMEX']]
+    
+    
+    Plan_Ajustado_u = df[(df['DEST']!= '945 Café' ) & (df['ASERTIVO_PROGRAMA'] == 'Si')]['UDS'].sum()
+    Plan_Ajustado_c = df[(df['DEST']!= '945 Café' ) & (df['ASERTIVO_PROGRAMA'] == 'Si')]['CONTENEDORES'].count()
+    
+# =============================================================================
+#     
+# =============================================================================
+
+    Semana = df[(df['DEST']!= '945 Café' ) & (df['ASERTIVO_PROGRAMA'] == 'Si')]['SEMANA_COMEX'].unique()
+    if len(Buffer_) > 0:
+        Buffer_['SEMANA_COMEX'] = Semana
+    Plan_Ajustado = pd.DataFrame(dict(OBSERVACION = 'Plan Ajustado',DOWN = Plan_Ajustado_u, CONTENEDORES = Plan_Ajustado_c, SEMANA_COMEX = Semana),index=[0])
+
+# =============================================================================
+#     
+# =============================================================================
+    Cascada_ = Cascada.groupby(['OBSERVACION','SEMANA_COMEX']).agg({'UDS':'sum', 'CONTENEDORES': 'count'}).reset_index().rename(columns={'UDS':'DOWN'})
+    Cascada_ = Cascada_[Cascada_['OBSERVACION'] != '0']
+    Cascada_.sort_values(by=['DOWN'], ascending = False, inplace = True)
+    Cascada_['DOWN'] = Cascada_['DOWN'] * (-1)
+    Cascada_['CONTENEDORES'] = Cascada_['CONTENEDORES'] * (-1)
+    
+    Pdte_proceso = pd.DataFrame(dict(OBSERVACION = 'Pendiente de proceso', DOWN = 0, CONTENEDORES = 0, SEMANA_COMEX = Buffer_['SEMANA_COMEX']),index=[0])
+    Aereos = pd.DataFrame(dict(OBSERVACION = 'Aereos', DOWN = 0, CONTENEDORES = 0, SEMANA_COMEX = Buffer_['SEMANA_COMEX']),index=[0])
+    
+    Cascada_ = pd.concat([Plan_Ajustado,Cascada_,Buffer_]).reset_index()
+    Cascada_['FECHA_CARGA'] = fecha_carga
+    Cascada_ = Cascada_.rename_axis('Index')
+    Cascada_ = Cascada_[['OBSERVACION','DOWN','CONTENEDORES','SEMANA_COMEX','FECHA_CARGA']]
+    Cascada_.to_excel(rf'{path_out_cascada}/cascada.xlsx')
+    
+# =============================================================================
+# Contenedores Influyentes
+# =============================================================================
+
+    Cascada_CI = Cascada__[['CONTENEDORES','DEST','SUBLINEA','UDS','OBSERVACION','SEMANA_COMEX']]
+    Cascada_CI['OBSERVACION'] = Cascada_CI['OBSERVACION'].astype('str')
+    contenedores_influyentes = Cascada_CI[Cascada_CI['OBSERVACION'] != '0']
+    Buffer_CI = Buffer[['CONTENEDORES','DEST','SUBLINEA','UDS','OBSERVACION','SEMANA_COMEX']]
+    Buffer_CI['OBSERVACION'] = Buffer_CI['OBSERVACION'].replace({0: 'Reprogramado'})
+    contenedores_influyentes = pd.concat([contenedores_influyentes,Buffer_CI])
+    contenedores_influyentes['FECHA_CARGA'] = fecha_carga
+    contenedores_influyentes.sort_values(by=['OBSERVACION'], ascending = False, inplace = True)
+
+
+#%% CARGA A GCP
+
+# =============================================================================
+# Carga a GCP
+# =============================================================================
+    for col in ['UNIDADES_TOTALES', 'DENOMINADOR','UNIDADES']:
+        Planes[col] = Planes[col].astype('float')
+           
+    Planes = BI.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = Planes)      
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'formato_bunker_cc', Data = Planes, Append = 1, path = path_gcp) # Modificar Archivo IN
+    
+    Reales = BI.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = Reales)      
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'reales_bunker_cc', Data = Reales, Append = 1, path = path_gcp) # Script de actualización Reales
+    
+    Cascada_ = BI.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'asertividad_cascada', Data = Cascada_)     
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'asertividad_cascada', Data = Cascada_, Append = 1, path = path_gcp) # Correr Script
+    
+    contenedores_influyentes = BI.aplicacion_formatos_gcp(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'contenedores_influyentes', Data = contenedores_influyentes) 
+    BI.QxInsertGCP(Proyecto = PROJECT_NAME, Dataset = DATASET_NAME, Tabla = 'contenedores_influyentes', Data = contenedores_influyentes, Append = 1, path = path_gcp) # Modificar Archivo IN
+
+    shutil.move(path_in + '/'+ file, path_out + '/' + file)
